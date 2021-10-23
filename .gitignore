@@ -103,6 +103,7 @@ ENV/
 
 # IDE settings
 .vscode/
+.idea/
 
 # mkdocs build dir
 site/

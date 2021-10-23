@@ -24,9 +24,13 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.9.0,<4.0"
+python = "^3.9"
+folium = "0.12.1"
+branca = "0.4.2"
 fire = "0.4.0"
+Pillow = "8.4.0"
 
+[tool.poetry.dev-dependencies]
 black  = { version = "20.8b1", optional = true}
 isort  = { version = "5.6.4", optional = true}
 flake8  = { version = "3.8.4", optional = true}
