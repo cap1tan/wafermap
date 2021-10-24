@@ -29,7 +29,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=270,
         )
-        wm.save_html("..\\..\\tests\\test_wafermap_full.html")
+        wm.save_html(".\\tests\\test_wafermap_full.html")
 
         wm = wafermap.WaferMap(
             wafer_radius=150e-3,
@@ -40,7 +40,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=270,
         )
-        wm.save_html("..\\..\\tests\\test_wafermap_full_150.html")
+        wm.save_html(".\\tests\\test_wafermap_full_150.html")
 
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,
@@ -51,7 +51,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="inner",
             notch_orientation=270,
         )
-        wm.save_html("..\\..\\tests\\test_wafermap_inner.html")
+        wm.save_html(".\\tests\\test_wafermap_inner.html")
 
         wm = wafermap.WaferMap(
             wafer_radius=150e-3,
@@ -62,7 +62,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="inner",
             notch_orientation=270,
         )
-        wm.save_html("..\\..\\tests\\test_wafermap_inner_150.html")
+        wm.save_html(".\\tests\\test_wafermap_inner_150.html")
 
         wm = wafermap.WaferMap(
             wafer_radius=150,
@@ -74,7 +74,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
             conversion_factor=1e-3,
         )
-        wm.save_html("..\\..\\tests\\test_wafermap_inner_150_with_conversion.html")
+        wm.save_html(".\\tests\\test_wafermap_inner_150_with_conversion.html")
 
         wm = wafermap.WaferMap(
             wafer_radius=150,
@@ -86,7 +86,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
             conversion_factor=1e-3,
         )
-        wm.save_html("..\\..\\tests\\test_wafermap_150_sipp27.html")
+        wm.save_html(".\\tests\\test_wafermap_150_sipp27.html")
 
     def test_wafermap_notch(self):
 
@@ -99,7 +99,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=270,
         )
-        wm.save_html("..\\..\\tests\\test_wafermap_notch_270.html")
+        wm.save_html(".\\tests\\test_wafermap_notch_270.html")
 
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,
@@ -110,7 +110,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=180,
         )
-        wm.save_html("..\\..\\tests\\test_wafermap_notch_180.html")
+        wm.save_html(".\\tests\\test_wafermap_notch_180.html")
 
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,
@@ -121,7 +121,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=67,
         )
-        wm.save_html("..\\..\\tests\\test_wafermap_notch_67.html")
+        wm.save_html(".\\tests\\test_wafermap_notch_67.html")
 
     def test_wafermap_grid(self):
 
@@ -134,7 +134,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=270,
         )
-        wm.save_html("..\\..\\tests\\test_wafermap_10_20.html")
+        wm.save_html(".\\tests\\test_wafermap_10_20.html")
 
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,
@@ -145,7 +145,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=270,
         )
-        wm.save_html("..\\..\\tests\\test_wafermap_1_10.html")
+        wm.save_html(".\\tests\\test_wafermap_1_10.html")
 
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,
@@ -156,7 +156,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=270,
         )
-        wm.save_html("..\\..\\tests\\test_wafermap_50_10.html")
+        wm.save_html(".\\tests\\test_wafermap_50_10.html")
 
     def test_wafermap_cell_margin(self):
 
@@ -169,7 +169,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=270,
         )
-        wm.save_html("..\\..\\tests\\test_wafermap_margin_8_15.html")
+        wm.save_html(".\\tests\\test_wafermap_margin_8_15.html")
 
     def test_wafermap_edge_exclusion(self):
 
@@ -182,7 +182,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=270,
         )
-        wm.save_html("..\\..\\tests\\test_wafermap_ee_10.html")
+        wm.save_html(".\\tests\\test_wafermap_ee_10.html")
 
     def test_wafermap_png(self):
 
@@ -194,7 +194,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=270,
         )
-        _ = wm.save_png("..\\..\\tests\\test_wafermap.png")
+        _ = wm.save_png(".\\tests\\test_wafermap.png")
 
     def test_wafermap_add_image1(self):
 
@@ -207,38 +207,38 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.add_image(
-            image_source_file="..\\..\\tests\\INS3300_Lot_1_Wafer_17_147375.jpg",
+            image_source_file=".\\tests\\INS3300_Lot_1_Wafer_17_147375.jpg",
             cell=(0, 0),
             offset=(0.0, 0.0),
         )
         wm.add_image(
-            image_source_file="..\\..\\tests\\INS3300_Lot_1_Wafer_2_125416.jpg",
+            image_source_file=".\\tests\\INS3300_Lot_1_Wafer_2_125416.jpg",
             cell=(1, 0),
             offset=(2.0e-3, 2.0e-3),
         )
         wm.add_image(
-            image_source_file="..\\..\\tests\\INS3300_Lot_1_Wafer_17_147378.jpg",
+            image_source_file=".\\tests\\INS3300_Lot_1_Wafer_17_147378.jpg",
             cell=(3, 0),
             offset=(0.5e-3, 0.5e-3),
             marker_style={},
         )
         wm.add_image(
-            image_source_file="..\\..\\tests\\INS3300_Lot_1_Wafer_2_125416.jpg",
+            image_source_file=".\\tests\\INS3300_Lot_1_Wafer_2_125416.jpg",
             cell=(0, -2),
             offset=(12.0e-3, 5.0e-3),
         )
         wm.add_image(
-            image_source_file="..\\..\\tests\\INS3300_Lot_1_Wafer_17_147378.jpg",
+            image_source_file=".\\tests\\INS3300_Lot_1_Wafer_17_147378.jpg",
             cell=(0, -2),
             offset=(28.0e-3, 3e-3),
         )
         wm.add_image(
-            image_source_file="..\\..\\tests\\INS3300_Lot_1_Wafer_2_125416.jpg",
+            image_source_file=".\\tests\\INS3300_Lot_1_Wafer_2_125416.jpg",
             cell=(0, 1),
             offset=(0.0, 0.0),
             marker_style={},
         )
-        wm.save_html("..\\..\\tests\\test_wafermap_image1.html")
+        wm.save_html(".\\tests\\test_wafermap_image1.html")
 
     def test_wafermap_add_image2(self):
 
@@ -251,38 +251,38 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.add_image(
-            image_source_file="..\\..\\tests\\INS3300_Lot_1_Wafer_17_147375.jpg",
+            image_source_file=".\\tests\\INS3300_Lot_1_Wafer_17_147375.jpg",
             cell=(0, 0),
             offset=(0.0, 0.0),
         )
         wm.add_image(
-            image_source_file="..\\..\\tests\\INS3300_Lot_1_Wafer_2_125416.jpg",
+            image_source_file=".\\tests\\INS3300_Lot_1_Wafer_2_125416.jpg",
             cell=(1, 0),
             offset=(2.0e-3, 2.0e-3),
         )
         wm.add_image(
-            image_source_file="..\\..\\tests\\INS3300_Lot_1_Wafer_17_147378.jpg",
+            image_source_file=".\\tests\\INS3300_Lot_1_Wafer_17_147378.jpg",
             cell=(3, 0),
             offset=(0.5e-3, 0.5e-3),
             marker_style={},
         )
         wm.add_image(
-            image_source_file="..\\..\\tests\\INS3300_Lot_1_Wafer_2_125416.jpg",
+            image_source_file=".\\tests\\INS3300_Lot_1_Wafer_2_125416.jpg",
             cell=(0, -2),
             offset=(12.0e-3, 5.0e-3),
         )
         wm.add_image(
-            image_source_file="..\\..\\tests\\INS3300_Lot_1_Wafer_17_147378.jpg",
+            image_source_file=".\\tests\\INS3300_Lot_1_Wafer_17_147378.jpg",
             cell=(0, -2),
             offset=(28.0e-3, 3e-3),
         )
         wm.add_image(
-            image_source_file="..\\..\\tests\\INS3300_Lot_1_Wafer_2_125416.jpg",
+            image_source_file=".\\tests\\INS3300_Lot_1_Wafer_2_125416.jpg",
             cell=(0, 1),
             offset=(0.0, 0.0),
             marker_style={},
         )
-        wm.save_html("..\\..\\tests\\test_wafermap_image2.html")
+        wm.save_html(".\\tests\\test_wafermap_image2.html")
 
     def test_wafermap_add_vectors1(self):
 
@@ -315,7 +315,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
                 root_style={"radius": 1, "color": color},
             )
 
-        wm.save_html("..\\..\\tests\\test_wafermap_vectors1.html")
+        wm.save_html(".\\tests\\test_wafermap_vectors1.html")
 
     def test_wafermap_add_vectors2(self):
 
@@ -346,7 +346,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
                 root_style={"radius": 1, "color": "black"},
             )
 
-        wm.save_html("..\\..\\tests\\test_wafermap_vectors2.html")
+        wm.save_html(".\\tests\\test_wafermap_vectors2.html")
 
     def test_wafermap_add_points1(self):
 
@@ -367,7 +367,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
         for wafer_point in wafer_points:
             wm.add_point(cell=None, offset=wafer_point)
 
-        wm.save_html("..\\..\\tests\\test_wafermap_points1.html")
+        wm.save_html(".\\tests\\test_wafermap_points1.html")
 
     def test_wafermap_add_points2(self):
 
@@ -398,7 +398,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             for cell_point in cell_points_:
                 wm.add_point(cell=cell, offset=cell_point)
 
-        wm.save_html("..\\..\\tests\\test_wafermap_points2.html")
+        wm.save_html(".\\tests\\test_wafermap_points2.html")
 
     def test_example_wafermap(self):
 
@@ -417,7 +417,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
 
         # add an image
         wm.add_image(
-            image_source_file="..\\..\\tests\\INS3300_Lot_1_Wafer_17_147378.jpg",
+            image_source_file=".\\tests\\INS3300_Lot_1_Wafer_17_147378.jpg",
             cell=(1, 0),  # (cell_index_x, cell_index_y)
             offset=(2.0e-3, 2.0e-3),
         )  # relative coordinate of the image within the cell
@@ -458,7 +458,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
                 wm.add_point(cell=cell, offset=cell_point)
 
         # save to html
-        wm.save_html("..\\..\\tests\\test_wafermap_example.html")
+        wm.save_html(".\\tests\\test_wafermap_example.html")
 
         # save to png (Mozilla must be installed)
-        wm.save_png("..\\..\\tests\\test_wafermap_example.png")
+        wm.save_png(".\\tests\\test_wafermap_example.png")

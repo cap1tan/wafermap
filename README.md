@@ -8,7 +8,7 @@
 </a>
 
 <a href="https://github.com/cap1tan/wafermap/actions">
-    <img src="https://github.com/cap1tan/wafermap/actions/workflows/main.yml/badge.svg?branch=release" alt="CI Status">
+    <img src="https://github.com/cap1tan/wafermap/actions/workflows/release.yml/badge.svg?branch=release" alt="CI Status">
 </a>
 
 <a href="https://wafermap.readthedocs.io/en/latest/?badge=latest">

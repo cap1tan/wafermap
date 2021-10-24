@@ -5,11 +5,11 @@ from io import BytesIO
 from typing import Dict, List, Tuple, Union
 
 import branca
-import common
 import folium
 from folium import IFrame
 from folium.plugins import MeasureControl, MousePosition
 from PIL import Image
+from wafermap import common
 
 try:
     import selenium
