@@ -2,7 +2,7 @@ import colorsys
 import math
 import os
 import random
-from typing import Union
+from typing import List, Tuple, Union
 
 import numpy
 
@@ -16,7 +16,7 @@ def get_random_html_colormap_hsl(
     lu: float = None,
     uniqueness_threshold: float = 0.1,
     hsl_out=False,
-) -> Union[list[str], list[tuple[float]]]:
+) -> Union[List[str], List[Tuple[float]]]:
     """
     Creates a list of colors in HTML format.
     :param num_of_colors: Numver of colors to create.
@@ -87,7 +87,7 @@ def rgb_to_html(r: float, g: float, b: float) -> str:
     return "#%02X%02X%02X" % (r, g, b)
 
 
-def complementary(r, g, b):
+def complementary(r: int, g: int, b: int) -> Tuple[int, int, int]:
     """returns RGB components of complementary color"""
     hsv = colorsys.rgb_to_hsv(r, g, b)
     return colorsys.hsv_to_rgb((hsv[0] + 0.5) % 1, hsv[1], hsv[2])
@@ -96,7 +96,9 @@ def complementary(r, g, b):
 # Utility functions
 
 
-def euclidean_distance(point: tuple, origin=None):
+def euclidean_distance(
+    point: Tuple[float, float], origin: Tuple[float, float] = None
+) -> float:
     """Calculate euclidean distance from the origin"""
     if origin is None:
         return math.sqrt(sum((p ** 2 for p in point)))
@@ -105,14 +107,14 @@ def euclidean_distance(point: tuple, origin=None):
         return math.sqrt(sum(((p - o) ** 2 for p, o in zip(point, origin))))
 
 
-def append_to_filename(filename, suffix):
+def append_to_filename(filename: str, suffix: str):
     splitext = os.path.splitext(filename)
     return splitext[0] + suffix + splitext[1]
 
 
 def bounded_rectangle(
-    rect: list[tuple[float, float]], bounds: list[tuple[float, float]]
-) -> list[tuple[float, float]]:
+    rect: List[Tuple[float, float]], bounds: List[Tuple[float, float]]
+) -> List[Tuple[float, float]]:
     """
     Resize rectangle given by points into a rectangle that fits within bounds, preserving the aspect ratio
     :param rect: Input rectangle [ll, ur], where each point is (y, x)
@@ -151,7 +153,9 @@ def bounded_rectangle(
     return rect_out
 
 
-def rotate(points: list[tuple[float, float]], anchor: tuple[float, float], angle=90):
+def rotate(
+    points: List[Tuple[float, float]], anchor: Tuple[float, float], angle: float = 90.0
+) -> List[Tuple[float, float]]:
     """Rotates points (nx2) about anchor (x, y) by angle in degrees"""
     points = numpy.array(points)
     anchor = numpy.array(anchor)
@@ -165,13 +169,13 @@ def rotate(points: list[tuple[float, float]], anchor: tuple[float, float], angle
     )
 
 
-def cart2pol(x: float, y: float) -> tuple[float, float]:
+def cart2pol(x: float, y: float) -> Tuple[float, float]:
     rho = numpy.sqrt(x ** 2 + y ** 2)
     phi = numpy.arctan2(y, x)
     return (rho, phi)
 
 
-def pol2cart(rho: float, phi: float) -> tuple[float, float]:
+def pol2cart(rho: float, phi: float) -> Tuple[float, float]:
     x = rho * numpy.cos(phi)
     y = rho * numpy.sin(phi)
     return (x, y)
@@ -207,7 +211,7 @@ def ceil_to(num: float, tnum: float) -> float:
     return math.ceil(num / tnum) * tnum
 
 
-def trunc(x, n):
+def trunc(x: Union[str, float], n: int) -> str:
     """Truncates x to n decimal points, regardless if x is a str or a number"""
     try:
         x_f = float(x)

@@ -2,21 +2,17 @@ import base64
 import math
 import os
 from io import BytesIO
-from typing import Dict, List, Tuple, Union
+from typing import List, Tuple, Union
 
 import branca
 import folium
-from folium import IFrame
-from folium.plugins import MeasureControl, MousePosition
+from folium import IFrame, plugins
 from PIL import Image
 from wafermap import common
 
 try:
     import selenium
-
-    HTML_EXPORT_SUPPORT = True
 except ImportError:
-    HTML_EXPORT_SUPPORT = False
     selenium = None
 
 
@@ -279,7 +275,10 @@ class WaferMap:
 
     def save_png(self, output_file="wafermap.png") -> Union[str, None]:
         # TODO: Do without relying on selenium
-        assert HTML_EXPORT_SUPPORT
+        if selenium is None:
+            raise EnvironmentError(
+                "Error: Selenium is required to export to png and is not installed."
+            )
         assert os.path.splitext(output_file)[1].lower() == ".png"
         self._cell_labels_layer.show = False
         try:

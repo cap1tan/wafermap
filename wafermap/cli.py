@@ -1,3 +1,4 @@
+# flake8: noqa
 """Console script for wafermap."""
 
 import fire
