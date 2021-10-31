@@ -4,7 +4,7 @@ name: dev workflow
 
 # Controls when the action will run.
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
+  # Triggers the workflow on push or pull request events for master/main/release branch
   push:
     branches: [ master,main,release ]
   pull_request:
@@ -20,8 +20,8 @@ jobs:
     # The type of runner that the job will run on
     strategy:
       matrix:
-        python-versions: [3.9]
-        os: [ubuntu-18.04, macos-latest, windows-latest]
+        python-versions: [3.7, 3.8, 3.9]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -49,7 +49,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@master
       - uses: actions/setup-python@v2
         with:
           python-version: 3.9
@@ -66,10 +66,11 @@ jobs:
       - name: list files
         run: ls -l .
 
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v2
         with:
           fail_ci_if_error: true
           files: coverage.xml
+          verbose: true
 
       - name: Build wheels and source tarball
         run: |

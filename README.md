@@ -36,6 +36,15 @@ A python package to plot maps of semiconductor wafers.
 * Export to png with selenium, geckodriver and Mozilla
 
 
+## Examples
+
+[HTML](./examples/test_wafermap_example.html)
+
+PNG:
+![Example_wafermap](./examples/test_wafermap_example.png)
+
+
+
 ## Usage
 
 ```python
@@ -87,9 +96,4 @@ wm.save_png(f"wafermap.png")
 - Folium
 - branca
 - Pillow
-- Optional: selenium, geckodriver and Mozilla browser installed.
-
-
-## Credits
-
-This package was created with [Cookiecutter](https://github.com/audreyr/cookiecutter) and the [zillionare/cookiecutter-pypackage](https://github.com/zillionare/cookiecutter-pypackage) project template.
+- Optional for exporting to .png images: selenium, geckodriver and Mozilla browser installed.
