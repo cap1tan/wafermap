@@ -4,15 +4,13 @@ repo_url: https://github.com/cap1tan/wafermap
 repo_name: wafermap
 #strict: true
 nav:
-  - home: index.md
-  - installation: installation.md
-  - usage: usage.md
-  - modules: api.md
+  - Home: index.md
+  - Usage: usage.md
   - contributing: contributing.md
-  - authors: authors.md
-  - history: history.md
+  - Authors: authors.md
+  - History: history.md
 theme:
-  name: material
+  name: readthedocs
   language: en
   #logo: assets/logo.png
   palette:
@@ -53,14 +51,6 @@ plugins:
         - wafermap
 extra:
   social:
-    - icon: fontawesome/brands/twitter
-      # replace with your own tweet link below
-      link: http://www.jieyu.ai
-      name: Tweet
-    - icon: fontawesome/brands/facebook
-      # replace with your own facebook link below
-      link: http://www.jieyu.ai
-      name: Facebook
     - icon: fontawesome/brands/github
       link: https://github.com/cap1tan/wafermap
       name: Github

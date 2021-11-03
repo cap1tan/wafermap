@@ -11,9 +11,9 @@
     <img src="https://github.com/cap1tan/wafermap/actions/workflows/release.yml/badge.svg?branch=release" alt="CI Status">
 </a>
 
-<a href="https://wafermap.readthedocs.io/en/latest/?badge=latest">
+<!-- <a href="https://wafermap.readthedocs.io/en/latest/?badge=latest">
     <img src="https://readthedocs.org/projects/wafermap/badge/?version=latest" alt="Documentation Status">
-</a>
+</a> -->
 
 </p>
 
@@ -38,10 +38,9 @@ A python package to plot maps of semiconductor wafers.
 
 ## Examples
 
-[HTML](./examples/test_wafermap_example.html)
+[HTML](examples/test_wafermap_example.html)
 
-PNG:
-![Example_wafermap](./examples/test_wafermap_example.png)
+![Example_wafermap](examples/test_wafermap_example.png)
 
 
 
@@ -91,7 +90,7 @@ wm.save_html(f"wafermap.html")
 wm.save_png(f"wafermap.png")
 ```
 
-### Dependencies
+## Dependencies
 
 - Folium
 - branca
