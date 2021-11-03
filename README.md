@@ -22,7 +22,7 @@ A python package to plot maps of semiconductor wafers.
 
 
 * Free software: MIT
-* Documentation: <https://wafermap.readthedocs.io>
+* Documentation: <https://cap1tan.github.io/wafermap/>
 
 
 ## Features
