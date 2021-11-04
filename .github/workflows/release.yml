@@ -61,11 +61,14 @@ jobs:
       - name: create github release
         id: create_release
         uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          body_path: ./CHANGELOG.md
-          files: dist/*.whl
+          body_path: ./HISTORY.md
+          files: |
+            dist/*.whl
+            LICENSE
           draft: false
           prerelease: false
 
