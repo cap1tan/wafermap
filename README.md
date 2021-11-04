@@ -11,6 +11,12 @@
     <img src="https://github.com/cap1tan/wafermap/actions/workflows/release.yml/badge.svg?branch=release" alt="CI Status">
 </a>
 
+
+<a href="https://codecov.io/gh/cap1tan/wafermap">
+    <img src="https://codecov.io/gh/cap1tan/wafermap/branch/master/graph/badge.svg?token=lSZz8hHrVB"/>
+</a>
+
+
 <!-- <a href="https://wafermap.readthedocs.io/en/latest/?badge=latest">
     <img src="https://readthedocs.org/projects/wafermap/badge/?version=latest" alt="Documentation Status">
 </a> -->
