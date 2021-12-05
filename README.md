@@ -144,9 +144,9 @@ wm.save_png(f"wafermap.png")
 
 ## Dependencies
 
-- Folium
-- branca
-- Pillow
+- Folium -> to make dynamic, zoom-able and scroll-able HTML based maps 
+- branca -> for the white background map
+- Pillow -> to support embedded images and format the optional image output 
 - Optional for exporting to .png images: selenium, geckodriver and Mozilla browser installed.
 
 
