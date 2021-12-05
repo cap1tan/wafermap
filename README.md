@@ -43,11 +43,11 @@ A python package to plot maps of semiconductor wafers.
 
 ## Examples
 
-Save the [demo html](examples/test_wafermap_example.html) file and open in a browser for the scrollable/zoomable version.
+Save the [demo html](docs/test_wafermap_example.html) file and open in a browser for the scrollable/zoomable version.
 
 Static png image:
 
-![Example_wafermap](examples/test_wafermap_example.png)
+![Example_wafermap](docs/test_wafermap_example.png)
 
 
 ## Installation
