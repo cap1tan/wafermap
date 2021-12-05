@@ -1,6 +1,5 @@
 # Wafermap
 
-
 <p align="center">
 <a href="https://pypi.python.org/pypi/wafermap">
     <img src="https://img.shields.io/pypi/v/wafermap.svg"
@@ -23,14 +22,10 @@
 
 </p>
 
-![144761616-69a16363-e164-4cde-be9b-3110eca19b42](https://user-images.githubusercontent.com/21320195/144761668-84282eaf-bb3b-4b24-bf2b-d3ac2f4149d3.png)![144761668-84282eaf-bb3b-4b24-bf2b-d3ac2f4149d3](https://user-images.githubusercontent.com/21320195/144761691-a221dafc-34b8-49fd-a67c-c49849bac82b.png)
-
 
 A python package to plot maps of semiconductor wafers.
 
-
-* Free software: MIT![test_wafermap_example](https://user-images.githubusercontent.com/21320195/144761616-69a16363-e164-4cde-be9b-3110eca19b42.png)
-
+Free software: MIT license
 
 
 ## Features
@@ -49,6 +44,7 @@ A python package to plot maps of semiconductor wafers.
 - See the full dynamic map [here](https://cap1tan.github.io/wafermap/)!
 
 - Static png image, just to get a taste:
+
 ![Example_wafermap](docs/test_wafermap_example.png)
 
 
