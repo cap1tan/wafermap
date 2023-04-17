@@ -1,25 +1,17 @@
-#!/usr/bin/env python
-# pylint: disable=redefined-outer-name
+"""Automated testing functions"""
+
+# pylint: disable=redefined-outer-name, missing-function-docstring, invalid-name
 
 import random as rnd
 import unittest
 
-from wafermap import common, wafermap
+from wafermap import utils, wafermap
 
 
 class FunctionalTestsWafermap(unittest.TestCase):
     """Functional tests for the wafermap package."""
 
-    def setUp(self):
-        """Set up test fixtures, if any."""
-        pass
-
-    def tearDown(self):
-        """Tear down test fixtures, if any."""
-        pass
-
     def test_wafermap_coverage_and_size(self):
-
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,
             cell_size=(13.702e-3, 24.846e-3),
@@ -89,7 +81,6 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.save_html(".\\tests\\test_wafermap_150_sipp27.html")
 
     def test_wafermap_notch(self):
-
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,
             cell_size=(13.702e-3, 24.846e-3),
@@ -124,7 +115,6 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.save_html(".\\tests\\test_wafermap_notch_67.html")
 
     def test_wafermap_grid(self):
-
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,
             cell_size=(10e-3, 20e-3),
@@ -159,7 +149,6 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.save_html(".\\tests\\test_wafermap_50_10.html")
 
     def test_wafermap_cell_margin(self):
-
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,
             cell_size=(13.702e-3, 24.846e-3),
@@ -172,7 +161,6 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.save_html(".\\tests\\test_wafermap_margin_8_15.html")
 
     def test_wafermap_edge_exclusion(self):
-
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,
             cell_size=(13.702e-3, 24.846e-3),
@@ -185,7 +173,6 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.save_html(".\\tests\\test_wafermap_ee_10.html")
 
     def test_wafermap_png(self):
-
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,
             cell_size=(13.702e-3, 24.846e-3),
@@ -197,7 +184,6 @@ class FunctionalTestsWafermap(unittest.TestCase):
         _ = wm.save_png(".\\tests\\test_wafermap.png")
 
     def test_wafermap_add_image1(self):
-
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,
             cell_size=(13.702e-3, 24.846e-3),
@@ -241,7 +227,6 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.save_html(".\\tests\\test_wafermap_image1.html")
 
     def test_wafermap_add_image2(self):
-
         wm = wafermap.WaferMap(
             wafer_radius=150e-3,
             cell_size=(13.702e-3, 24.846e-3),
@@ -285,7 +270,6 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.save_html(".\\tests\\test_wafermap_image2.html")
 
     def test_wafermap_add_vectors1(self):
-
         cell_size = (26e-3, 14e-3)
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,
@@ -318,7 +302,6 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.save_html(".\\tests\\test_wafermap_vectors1.html")
 
     def test_wafermap_add_vectors2(self):
-
         cell_size = (26e-3, 14e-3)
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,
@@ -337,7 +320,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
                     (rnd.uniform(0, cell_size[1]), rnd.uniform(0, cell_size[0])),
                 ],
             )
-            for cell in wm.cell_map.keys()
+            for cell in wm.cell_map
         ]
         for cell, vector in vectors:
             wm.add_vector(
@@ -349,7 +332,6 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.save_html(".\\tests\\test_wafermap_vectors2.html")
 
     def test_wafermap_add_points1(self):
-
         cell_size = (26e-3, 14e-3)
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,
@@ -361,7 +343,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
         )
 
         wafer_points = [
-            common.pol2cart(rnd.gauss(0, 100e-3 / 3), rnd.gauss(0, 360))
+            utils.pol2cart(rnd.gauss(0, 100e-3 / 3), rnd.gauss(0, 360))
             for _ in range(1000)
         ]
         for wafer_point in wafer_points:
@@ -370,7 +352,6 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.save_html(".\\tests\\test_wafermap_points1.html")
 
     def test_wafermap_add_points2(self):
-
         cell_size = (26e-3, 14e-3)
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,
@@ -401,7 +382,6 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.save_html(".\\tests\\test_wafermap_points2.html")
 
     def test_example_wafermap(self):
-
         # define the wafermap
         wm = wafermap.WaferMap(
             wafer_radius=100e-3,  # all length dimensions in meters
@@ -410,7 +390,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             grid_offset=(-2.05e-3, -4.1e-3),  # grid offset in (x, y)
             edge_exclusion=3.2e-3,
             # margin from the wafer edge where a red edge exclusion ring is drawn
-            coverage="full",  # 'full': will cover wafer with cells, partial cells allowed
+            coverage="full",  # partial cells allowed
             # 'inner': only full cells allowed
             notch_orientation=270,
         )  # angle of notch in degrees. 270 corresponds to a notch at the bottom
@@ -451,11 +431,13 @@ class FunctionalTestsWafermap(unittest.TestCase):
                     for _ in range(50)
                 ],
             )
-            for cell in wm.cell_map.keys()
+            for cell in wm.cell_map
         ]
         for cell, cell_points_ in cell_points:
-            for cell_point in cell_points_:
-                wm.add_point(cell=cell, offset=cell_point)
+            for i, cell_point in enumerate(cell_points_):
+                wm.add_point(
+                    cell=cell, offset=cell_point, popup_text=f"Cell marker {i}"
+                )
 
         # save to html
         wm.save_html(".\\tests\\test_wafermap_example.html")

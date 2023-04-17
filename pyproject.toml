@@ -1,82 +1,32 @@
-[tool]
 [tool.poetry]
 name = "wafermap"
-version = "0.1.0"
-homepage = "https://github.com/cap1tan/wafermap"
-description = "A python package to plot maps of semiconductor wafers.."
+version = "0.2.0"
+description = "A python package to plot maps of semiconductor wafers."
 authors = ["Sotiris Thomas <sothomas88@gmail.com>"]
 readme = "README.md"
-license =  "MIT"
-keywords = ["wafer", "semiconductor", "plot", "overlay", "IC"]
-classifiers=[
-    'Development Status :: 2 - Pre-Alpha',
-    'Intended Audience :: Developers',
-    'License :: OSI Approved :: MIT License',
-    'Natural Language :: English',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.9',
-    "Topic :: Software Development :: Libraries :: Python Modules"
-]
-packages = [
-    { include = "wafermap" },
-    { include = "tests", format = "sdist" },
-]
 
 [tool.poetry.dependencies]
-python = ">=3.7"
-folium = "^0.12.1"
-branca = "^0.4.2"
-Pillow = "^8.4.0"
-numpy = "^1.21.3"
+python = "^3.8"
+folium = "^0.14.0"
+branca = "^0.6.0"
+Pillow = "^9.5.0"
+numpy = "^1.24.2"
+selenium = "^4.8.3"
 
-selenium = { version = "4.0.0", optional = true}
-
-black  = { version = "^20.8b1", optional = true}
-isort  = { version = "^5.6.4", optional = true}
-flake8  = { version = "^3.8.4", optional = true}
-flake8-docstrings = { version = "^1.6.0", optional = true }
-pytest  = { version = "^6.1.2", optional = true}
-pytest-cov  = { version = "^2.10.1", optional = true}
-tox  = { version = "^3.20.1", optional = true}
-virtualenv  = { version = "^20.2.2", optional = true}
-pip  = { version = "^20.3.1", optional = true}
-twine  = { version = "^3.3.0", optional = true}
-pre-commit = {version = "^2.12.0", optional = true}
-toml = {version = "^0.10.2", optional = true}
-
-[tool.poetry.extras]
-test = [
-    "pytest",
-    "black",
-    "isort",
-    "flake8",
-    "flake8-docstrings",
-    "pytest-cov",
-    "selenium"
-    ]
-
-dev = ["tox", "pre-commit", "virtualenv", "pip", "twine", "toml"]
-
-with_png = ["selenium"]
-
-[tool.black]
-line-length = 88
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+isort = "^5.12.0"
+flake8 = {version = "^6.0.0", python = ">=3.8.1"}
+flake8-docstrings = "^1.7.0"
+pytest = "^7.3.1"
+pytest-cov = "*"
+# pre-commit = "^3.2.2"
+# toml = "^0.10.2"
+pylint = "^2.17.2"
+tox = "^3.28.0"
+tox-poetry-installer = "^0.10.2"
+twine = "^4.0.2"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

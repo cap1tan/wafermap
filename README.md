@@ -1,26 +1,9 @@
 # Wafermap
 
-<p align="center">
-<a href="https://pypi.python.org/pypi/wafermap">
-    <img src="https://img.shields.io/pypi/v/wafermap.svg"
-        alt = "Release Status">
-</a>
-
-<a href="https://github.com/cap1tan/wafermap/actions">
-    <img src="https://github.com/cap1tan/wafermap/actions/workflows/release.yml/badge.svg?branch=release" alt="CI Status">
-</a>
-
-
-<a href="https://codecov.io/gh/cap1tan/wafermap">
-    <img src="https://codecov.io/gh/cap1tan/wafermap/branch/master/graph/badge.svg?token=lSZz8hHrVB"/>
-</a>
-
-
-<!-- <a href="https://wafermap.readthedocs.io/en/latest/?badge=latest">
-    <img src="https://readthedocs.org/projects/wafermap/badge/?version=latest" alt="Documentation Status">
-</a> -->
-
-</p>
+[![image](https://img.shields.io/pypi/v/wafermap.svg)](https://pypi.python.org/pypi/wafermap)
+[![image](https://img.shields.io/pypi/pyversions/wafermap.svg)](https://pypi.python.org/pypi/wafermap)
+[![release & publish workflow](https://github.com/cap1tan/wafermap/actions/workflows/release.yml/badge.svg)](https://github.com/cap1tan/wafermap/actions/workflows/release.yml)
+[![linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/pylint-dev/pylint)
 
 
 A python package to plot maps of semiconductor wafers.
