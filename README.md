@@ -2,7 +2,6 @@
 
 [![image](https://img.shields.io/pypi/v/wafermap.svg)](https://pypi.python.org/pypi/wafermap)
 [![image](https://img.shields.io/pypi/pyversions/wafermap.svg)](https://pypi.python.org/pypi/wafermap)
-[![release & publish workflow](https://github.com/cap1tan/wafermap/actions/workflows/release.yml/badge.svg)](https://github.com/cap1tan/wafermap/actions/workflows/release.yml)
 [![linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/pylint-dev/pylint)
 
 
@@ -128,7 +127,7 @@ wm.save_png(f"wafermap.png")
 - Folium -> to make dynamic, zoom-able and scroll-able HTML based maps 
 - branca -> for the white background map
 - Pillow -> to support embedded images and format the optional image output 
-- Optional for exporting to .png images: selenium, geckodriver and Mozilla browser installed.
+- Optional for exporting to .png images: selenium and MS Edge browser installed.
 
 
 ## Contributing
