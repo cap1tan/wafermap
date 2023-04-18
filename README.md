@@ -18,7 +18,7 @@ Free software: MIT license
 * Tooltips with embeddable images.
 * Export zoom-able maps to HTML.
 * Toggle layers on/off individually.
-* Export to png with selenium, geckodriver and Mozilla
+* Export PNG images with selenium
 
 
 ## Examples
@@ -124,10 +124,9 @@ wm.save_png(f"wafermap.png")
 
 ## Dependencies
 
-- Folium -> to make dynamic, zoom-able and scroll-able HTML based maps 
-- branca -> for the white background map
-- Pillow -> to support embedded images and format the optional image output 
-- Optional for exporting to .png images: selenium and MS Edge browser installed.
+- __Folium__ & __branca__ -> to make dynamic, zoom-able and pan-able HTML based maps
+- __Pillow__ -> to support embedded images and format the optional image output 
+- Optional for exporting to .png images: __selenium__ and MS Edge browser installed.
 
 
 ## Contributing

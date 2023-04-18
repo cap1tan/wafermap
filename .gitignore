@@ -112,5 +112,3 @@ ENV/
 
 # mkdocs build dir
 site/
-
-tox.ini
