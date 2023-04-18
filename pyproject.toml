@@ -4,6 +4,9 @@ version = "0.2.0"
 description = "A python package to plot maps of semiconductor wafers."
 authors = ["Sotiris Thomas <sothomas88@gmail.com>"]
 readme = "README.md"
+license = "MIT"
+repository = "https://github.com/cap1tan/wafermap"
+keywords = ["semiconductor", "wafer", "layout", "plot"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -28,5 +31,5 @@ tox-poetry-installer = "^0.10.2"
 twine = "^4.0.2"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
