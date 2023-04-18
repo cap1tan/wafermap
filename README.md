@@ -16,14 +16,15 @@ Free software: MIT license
 * Edge-exclusion and grids with optional margin.
 * Hover-able points, vectors and images.
 * Tooltips with embeddable images.
-* Export zoom-able maps to HTML.
+* Individual labels and colors for each die.
 * Toggle layers on/off individually.
+* Export zoom-able maps to HTML.
 * Export PNG images with selenium
 
 
 ## Examples
 
-- See the full dynamic map [here](https://cap1tan.github.io/wafermap/)!
+- See the full dynamic maps [here](https://cap1tan.github.io/wafermap/)!
 
 - Static png image, just to get a taste:
 

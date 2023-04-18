@@ -373,13 +373,82 @@ class FunctionalTestsWafermap(unittest.TestCase):
                     for _ in range(50)
                 ],
             )
-            for cell in wm.cell_map.keys()
+            for cell in wm.cell_map
         ]
         for cell, cell_points_ in cell_points:
             for cell_point in cell_points_:
                 wm.add_point(cell=cell, offset=cell_point)
 
         wm.save_html(".\\tests\\test_wafermap_points2.html")
+
+    def test_wafermap_add_labels1(self):
+        cell_size = (26e-3, 14e-3)
+        wm = wafermap.WaferMap(
+            wafer_radius=100e-3,
+            cell_size=cell_size,
+            cell_margin=(0.0, 0.0),
+            grid_offset=(0e-3, 0e-3),
+            coverage="full",
+            notch_orientation=270,
+        )
+
+        for cell in wm.cell_map:
+            if sum(cell) % 2 == 0:
+                wm.add_label(
+                    cell=cell,
+                    offset=(cell_size[1] / 2, cell_size[0] / 2),
+                    label_text=f"Label: {cell}",
+                )
+            else:
+                wm.add_label(
+                    cell=cell,
+                    offset=(cell_size[1] / 2, cell_size[0] / 2),
+                    label_text=f"This is a longer label: {cell}",
+                )
+
+        wm.save_html(".\\tests\\test_wafermap_labels1.html")
+
+    def test_wafermap_style_cells1(self):
+        cell_size = (26e-3, 14e-3)
+        wm = wafermap.WaferMap(
+            wafer_radius=100e-3,
+            cell_size=cell_size,
+            cell_margin=(0.0, 0.0),
+            grid_offset=(0e-3, 0e-3),
+            coverage="full",
+            notch_orientation=270,
+        )
+
+        named_html_colors = [
+            "AliceBlue",
+            "red",
+            "green",
+            "blue",
+            "yellow",
+            "Aquamarine",
+            "Bisque",
+            "Brown",
+            "BlueViolet",
+            "Gold",
+            "Grey",
+            "Magenta",
+            "MidnightBlue",
+            "MintCream",
+            "Orange",
+            "Purple",
+            "Salmon",
+        ]
+        for cell in wm.cell_map:
+            random_cell_style = {
+                "fill": rnd.random() > 0.5,
+                "fillColor": named_html_colors[
+                    rnd.randint(0, len(named_html_colors) - 1)
+                ],
+                "fillOpacity": rnd.random(),
+            }
+            wm.style_cell(cell=cell, cell_style=random_cell_style)
+
+        wm.save_html(".\\tests\\test_wafermap_style_cells1.html")
 
     def test_example_wafermap(self):
         # define the wafermap
@@ -399,7 +468,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.add_image(
             image_source_file=".\\tests\\INS3300_Lot_1_Wafer_17_147378.jpg",
             cell=(1, 0),  # (cell_index_x, cell_index_y)
-            offset=(2.0e-3, 2.0e-3),
+            offset=(2.0e-3, 5.0e-3),
         )  # relative coordinate of the image within the cell
 
         # add vectors
@@ -437,6 +506,46 @@ class FunctionalTestsWafermap(unittest.TestCase):
             for i, cell_point in enumerate(cell_points_):
                 wm.add_point(
                     cell=cell, offset=cell_point, popup_text=f"Cell marker {i}"
+                )
+
+        # randomly add a label in cells
+        named_html_colors = [
+            "AliceBlue",
+            "red",
+            "green",
+            "blue",
+            "yellow",
+            "Aquamarine",
+            "Bisque",
+            "Brown",
+            "BlueViolet",
+            "Gold",
+            "Grey",
+            "Magenta",
+            "MidnightBlue",
+            "MintCream",
+            "Orange",
+            "Purple",
+            "Salmon",
+        ]
+        for i, cell_idx in enumerate(wm.cell_map):
+            if i > rnd.randint(0, len(wm.cell_map)) / 1.5:
+                # randomly print a random label
+                picked_fg_color = named_html_colors[
+                    rnd.randint(0, len(named_html_colors) - 1)
+                ]
+                random_label_style = (
+                    f"font-size: {rnd.randint(1, 16)}pt; "
+                    f"color: {picked_fg_color}; "
+                    f"text-align: center;"
+                    f" background-color:"
+                    f"{named_html_colors[rnd.randint(0, len(named_html_colors) - 1)]};"
+                )
+                wm.add_label(
+                    cell=cell_idx,
+                    offset=(cell_size[1] / 2, cell_size[0] / 2),
+                    label_text=picked_fg_color,
+                    label_html_style=random_label_style,
                 )
 
         # save to html
