@@ -103,11 +103,15 @@ for color, (cell, vector) in zip(colors, vectors):
 ```
 
 Let's throw in some points in a normal distribution for good measure too:
+
 ```python
 # add 50 points per cell, in a random distribution
 import random as rnd
+
 cell_size = (10e-3, 20e-3)
-cell_points = [(cell, [(rnd.gauss(cell_size[1]/2, cell_size[1]/6), rnd.gauss(cell_size[0]/2, cell_size[0]/6)) for _ in range(50)]) for cell in wm.cell_map.keys()]
+cell_points = [(cell, [(rnd.gauss(cell_size[1] / 2, cell_size[1] / 6),
+                        rnd.gauss(cell_size[0] / 2, cell_size[0] / 6)) for _ in
+                       range(50)]) for cell in wm._cell_map.keys()]
 for cell, cell_points_ in cell_points:
     for cell_point in cell_points_:
         wm.add_point(cell=cell, offset=cell_point)

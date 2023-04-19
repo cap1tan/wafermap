@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "wafermap"
-version = "0.2.0"
+version = "0.2.2"
 description = "A python package to plot maps of semiconductor wafers."
 authors = ["Sotiris Thomas <sothomas88@gmail.com>"]
 readme = "README.md"

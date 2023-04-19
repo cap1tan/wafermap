@@ -1,7 +1,5 @@
-"""Top-level package for Wafermap."""
+"""Package initialization"""
 
-__author__ = """Sotiris Thomas"""
-__email__ = "sothomas88@gmail.com"
-__version__ = "0.1.0"
-
-# TODO: Add dummy declarations
+# from wafermap(package).wafermap(module) we import class WaferMap into the package
+# namespace.
+from wafermap.wafermap import WaferMap
