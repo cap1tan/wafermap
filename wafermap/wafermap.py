@@ -8,7 +8,7 @@ from typing import List, Tuple, Union
 
 import branca
 import folium
-from folium import IFrame, plugins
+from folium import Element, IFrame, plugins
 from PIL import Image
 
 from wafermap import utils
@@ -30,7 +30,10 @@ class WaferMap:
     DEFAULT_MARKER_STYLE = {"color": "#ff0000", "fill": True}
     DEFAULT_VECTOR_STYLE = {"color": "#009900", "weight": 1}
     DEFAULT_POINT_STYLE = {"radius": 0.5, "fill": True}
-    DEFAULT_LABEL_HTML_STYLE = "font-size: 8pt; color: black; text-align: center;"
+    DEFAULT_LABEL_FONT_SIZE = 8
+    DEFAULT_LABEL_HTML_STYLE = (
+        f"font-size: {DEFAULT_LABEL_FONT_SIZE}pt; color: black; text-align: center;"
+    )
     IMAGE_SIZE_IN_POPUP = (400, 400)
     IMAGE_FOLDER = "\\_images\\"
     MAP_PADDING = (100, 100)  # in pixels (x, y)
@@ -105,20 +108,19 @@ class WaferMap:
             max_zoom=1000,
             zoomSnap=0,
             zoomDelta=0.1,
+            png_enabled=True,
         )
 
         # Add the base layer
         # Create a white image of 4 pixels, and embed it in an url.
-        white_tile = branca.utilities.image_to_url(
-            [[bg_color, bg_color], [bg_color, bg_color]]
-        )
+        white_tile = branca.utilities.image_to_url([[bg_color] * 2, [bg_color] * 2])
         # create base TileLayer (white background)
-        base = folium.raster_layers.TileLayer(
+        self._tile_layer = folium.raster_layers.TileLayer(
             tiles=white_tile,
             name="base",
             attr="white tile",
         )
-        base.add_to(folium_map)
+        self._tile_layer.add_to(folium_map)
 
         # Init rest of layers
         self._grid_layer = folium.map.FeatureGroup(name="grid")
@@ -250,9 +252,9 @@ class WaferMap:
                             lower_left[1] + (0.5 * self.cell_size_x),
                         ],
                         icon=folium.features.DivIcon(
-                            icon_size=(40, 10),
-                            icon_anchor=(0, 0),
-                            html=f'<div style="font-size: 8pt; color: black; '
+                            icon_size=(50, 20),
+                            icon_anchor=(25, 10),
+                            html=f'<div style="font-size: 8pt; color: black;'
                             f'text-align: center">{str(cell_label)}</div>',
                         ),
                     ).add_to(self._cell_labels_layer)
@@ -264,6 +266,15 @@ class WaferMap:
         self._images_layer.add_to(folium_map)
         self._markers_layer.add_to(folium_map)
         self._vectors_layer.add_to(folium_map)
+        # add extra controls
+        plugins.MousePosition(
+            position="topright",
+            separator=" | ",
+            empty_string="NaN",
+            lng_first=True,
+            prefix="Wafer Coordinates:",
+        ).add_to(folium_map)
+        folium.LayerControl().add_to(folium_map)
 
         self.map = folium_map
 
@@ -300,15 +311,6 @@ class WaferMap:
         self._cell_labels_layer.show = False
         self._labels_layer.show = False
         self.map.options["zoomControl"] = True
-        # add extra controls to the html map
-        plugins.MousePosition(
-            position="topright",
-            separator=" | ",
-            empty_string="NaN",
-            lng_first=True,
-            prefix="Wafer Coordinates:",
-        ).add_to(self.map)
-        folium.LayerControl().add_to(self.map)
         self.map.save(output_file)
         return output_file
 
@@ -642,9 +644,14 @@ class WaferMap:
                 offset[0],
                 offset[1],
             )
-        # we multiply by 5 so that we have some scaling the label size with the
-        # cell size but still, it is not 1-1 conversion to pixel size.
-        label_size_px = (self.cell_size_x * 4, self.cell_size_y * 3)
+        # we multiply so that we have some scaling the label size with the
+        # label size
+        # 1pt is 1.333px
+        label_size_px = (
+            min(len(label_text) * WaferMap.DEFAULT_LABEL_FONT_SIZE * 1.333, 100),
+            min(WaferMap.DEFAULT_LABEL_FONT_SIZE * 1.333, 100),
+        )
+        # put the label anchor at the center of the label
         label_anchor_px = (label_size_px[0] / 2, label_size_px[1] / 2)
         folium.map.Marker(
             location=label_origin,

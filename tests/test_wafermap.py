@@ -172,7 +172,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
         )
         wm.save_html(".\\tests\\test_wafermap_ee_10.html")
 
-    def test_wafermap_png(self):
+    def test_wafermap_png1(self):
         wm = wafermap.WaferMap(
             wafer_radius=100,
             cell_size=(13.702, 24.846),
@@ -181,7 +181,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=270,
         )
-        _ = wm.save_png(".\\tests\\test_wafermap.png")
+        wm.save_png(".\\tests\\test_wafermap_png1.png")
 
     def test_wafermap_add_image1(self):
         wm = wafermap.WaferMap(
@@ -316,8 +316,8 @@ class FunctionalTestsWafermap(unittest.TestCase):
             (
                 cell,
                 [
-                    (cell_size[1] / 2, cell_size[0] / 2),
-                    (rnd.uniform(0, cell_size[1]), rnd.uniform(0, cell_size[0])),
+                    (rnd.uniform(0, cell_size[0]), rnd.uniform(0, cell_size[1])),
+                    (rnd.uniform(0, cell_size[0]), rnd.uniform(0, cell_size[1])),
                 ],
             )
             for cell in wm.cell_map
@@ -396,13 +396,13 @@ class FunctionalTestsWafermap(unittest.TestCase):
             if sum(cell) % 2 == 0:
                 wm.add_label(
                     cell=cell,
-                    offset=(cell_size[1] / 2, cell_size[0] / 2),
+                    offset=(cell_size[0] / 2, cell_size[1] / 2),
                     label_text=f"Label: {cell}",
                 )
             else:
                 wm.add_label(
                     cell=cell,
-                    offset=(cell_size[1] / 2, cell_size[0] / 2),
+                    offset=(cell_size[0] / 2, cell_size[1] / 2),
                     label_text=f"This is a longer label: {cell}",
                 )
 
@@ -450,11 +450,12 @@ class FunctionalTestsWafermap(unittest.TestCase):
 
         wm.save_html(".\\tests\\test_wafermap_style_cells1.html")
 
-    def test_example_wafermap(self):
+    def test_wafermap_example1(self):
         # define the wafermap
+        cell_size = (10, 20)
         wm = wafermap.WaferMap(
             wafer_radius=100,  # all length dimensions in meters
-            cell_size=(10, 20),  # (sizeX, sizeY)
+            cell_size=cell_size,  # (sizeX, sizeY)
             cell_margin=(2.5, 4),  # distance between cell borders (x, y)
             grid_offset=(-2.05, -4.1),  # grid offset in (x, y)
             edge_exclusion=3.2,
@@ -488,14 +489,13 @@ class FunctionalTestsWafermap(unittest.TestCase):
             )
 
         # add 50 points per cell, in a random distribution
-        cell_size = (10, 20)
         cell_points = [
             (
                 cell,
                 [
                     (
-                        rnd.gauss(cell_size[1] / 2, cell_size[1] / 6),
                         rnd.gauss(cell_size[0] / 2, cell_size[0] / 6),
+                        rnd.gauss(cell_size[1] / 2, cell_size[1] / 6),
                     )
                     for _ in range(50)
                 ],
@@ -543,13 +543,12 @@ class FunctionalTestsWafermap(unittest.TestCase):
                 )
                 wm.add_label(
                     cell=cell_idx,
-                    offset=(cell_size[1] / 2, cell_size[0] / 2),
+                    offset=(cell_size[0] / 2, cell_size[1] / 2),
                     label_text=picked_fg_color,
                     label_html_style=random_label_style,
                 )
 
+        # save to png
+        wm.save_png(".\\tests\\test_wafermap_example1.png")
         # save to html
-        wm.save_html(".\\tests\\test_wafermap_example.html")
-
-        # save to png (Mozilla must be installed)
-        wm.save_png(".\\tests\\test_wafermap_example.png")
+        wm.save_html(".\\tests\\test_wafermap_example1.html")
