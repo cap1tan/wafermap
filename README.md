@@ -1,8 +1,16 @@
 # Wafermap
 
-[![image](https://img.shields.io/pypi/v/wafermap.svg)](https://pypi.python.org/pypi/wafermap)
-[![image](https://img.shields.io/pypi/pyversions/wafermap.svg)](https://pypi.python.org/pypi/wafermap)
-[![linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/pylint-dev/pylint)
+[
+![pypi](https://img.shields.io/pypi/v/wafermap.svg)
+![pypi](https://img.shields.io/pypi/pyversions/wafermap.svg)
+![pypi](https://img.shields.io/github/license/cap1tan/wafermap.svg)
+](https://pypi.org/project/wafermap/)
+[
+![GitHub](https://img.shields.io/github/v/release/cap1tan/wafermap?include_prereleases)
+![GitHub](https://img.shields.io/github/languages/code-size/cap1tan/wafermap)
+![pypi](https://img.shields.io/badge/linting-pylint-yellowgreen)
+](https://github.com/cap1tan/wafermap)
+
 
 
 A python package to plot maps of semiconductor wafers.
@@ -19,7 +27,7 @@ Free software: MIT license
 * Individual labels and colors for each die.
 * Toggle layers on/off individually.
 * Export zoom-able maps to HTML.
-* Export PNG images with selenium
+* Export PNG images (needs Chromium)
 
 
 ## Examples
@@ -122,7 +130,7 @@ Finally, nothing would matter if we couldn't see the result:
 # save to html
 wm.save_html(f"wafermap.html")
 
-# save to png (Mozilla must be installed)
+# save to png (Chromium must be installed)
 wm.save_png(f"wafermap.png")
 ```
 
@@ -131,7 +139,7 @@ wm.save_png(f"wafermap.png")
 
 - __Folium__ & __branca__ -> to make dynamic, zoom-able and pan-able HTML based maps
 - __Pillow__ -> to support embedded images and format the optional image output 
-- Optional for exporting to .png images: __selenium__ and MS Edge browser installed.
+- __Chromium__ -> exporting to .png images
 
 
 ## Contributing

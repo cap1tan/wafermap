@@ -1,12 +1,15 @@
 [tool.poetry]
 name = "wafermap"
-version = "0.2.3"
+version = "0.2.4"
 description = "A python package to plot maps of semiconductor wafers."
-authors = ["Sotiris Thomas <sothomas88@gmail.com>"]
+authors = ["cap1tan"]
 readme = "README.md"
 license = "MIT"
 repository = "https://github.com/cap1tan/wafermap"
 keywords = ["semiconductor", "wafer", "layout", "plot"]
+include = [
+    "LICENSE",
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -14,7 +17,7 @@ folium = "^0.14.0"
 branca = "^0.6.0"
 Pillow = "^9.5.0"
 numpy = "^1.24.2"
-selenium = "^4.8.3"
+html2image = "^2.0.3"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
