@@ -20,8 +20,9 @@ Free software: MIT license
 
 ## Features
 
-* Circular wafers with arbitrary notch orientations.
-* Edge-exclusion and grids with optional margin.
+* Circular wafers with arbitrary notch orientations and full or inner layouts.
+* Grid with adjustable offset and origin, cells with adjustable size and margin.
+* Edge-exclusion.
 * Hover-able points, vectors and images.
 * Tooltips with embeddable images.
 * Individual labels and colors for each die.
@@ -83,6 +84,7 @@ First let's define a Wafermap:
 wm = wafermap.WaferMap(wafer_radius=100,                # all length dimensions in mm
                        cell_size=(10, 20),              # (sizeX, sizeY)
                        cell_margin=(8, 15),             # distance between cell borders (x, y)
+                       cell_origin=(0, 0),              # which cell to select as origin (0, 0), in (x, y)
                        grid_offset=(-2.05, -4.1),       # grid offset in (x, y)
                        edge_exclusion=2.2,              # margin from the wafer edge where a red edge exclusion ring is drawn
                        coverage='full',                 # 'full': will cover wafer with cells, partial cells allowed

@@ -36,7 +36,7 @@ class WaferMap:
         f"font-size: {DEFAULT_LABEL_FONT_SIZE}pt; color: black; text-align: center;"
     )
     IMAGE_SIZE_IN_POPUP = (400, 400)
-    MAP_PADDING = (110, 0)  # in pixels (x, y)
+    MAP_PADDING = (110, 20)  # in pixels (x, y)
 
     def __init__(
         self,
@@ -126,8 +126,9 @@ class WaferMap:
 
         # Add the base layer
         # Create a white image of 4 pixels, and embed it in an url.
-        bg_tile = branca.utilities.image_to_url([[map_bg_color] * 2,
-                                                 [map_bg_color] * 2])
+        bg_tile = branca.utilities.image_to_url(
+            [[map_bg_color] * 2, [map_bg_color] * 2]
+        )
         # create base TileLayer
         self._tile_layer = folium.raster_layers.TileLayer(
             tiles=bg_tile,

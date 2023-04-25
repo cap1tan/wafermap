@@ -1,6 +1,5 @@
 """Utility functions"""
 
-import colorsys
 import math
 
 import numpy

@@ -220,7 +220,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=270,
             wafer_edge_color=(0.0, 0.1, 0.9),
-            map_bg_color=None
+            map_bg_color=None,
         )
         wm.save_html(".\\tests\\test_wafermap_color1.html")
 
@@ -234,7 +234,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=270,
             wafer_edge_color=(0, 0, 0),
-            map_bg_color=(0.0, 0.9, 1.0)
+            map_bg_color=(0.0, 0.9, 1.0),
         )
         wm.save_html(".\\tests\\test_wafermap_color2.html")
 
