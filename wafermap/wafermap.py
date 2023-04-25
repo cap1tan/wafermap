@@ -42,37 +42,46 @@ class WaferMap:
         self,
         wafer_radius: float,
         cell_size: Tuple[float, float],
-        cell_margin=(0.0, 0.0),
-        grid_offset=(0.0, 0.0),
-        edge_exclusion=3,
+        cell_margin: tuple[float, float] = (0.0, 0.0),
+        cell_origin: tuple[int, int] = (0, 0),
+        grid_offset: tuple[float, float] = (0.0, 0.0),
+        edge_exclusion: float = 3.0,
         coverage="full",
-        notch_orientation=270,
-        bg_color=(1, 1, 1),
-        conversion_factor=1,
+        notch_orientation: float = 270.0,
+        wafer_edge_color: tuple[float, float, float] = (0.0, 0.0, 0.0),
+        map_bg_color: Union[None, tuple[float, float, float]] = None,
+        conversion_factor: float = 1.0,
     ):
         """
         The wafermap origin is always the central die.
         :param wafer_radius: Wafer diameter in mm
         :param cell_size: Cell size in mm, (x, y)
         :param cell_margin: Distance between cells in mm, (x, y)
+        :param cell_origin: The cell index that is the origin (0, 0) of the map, (x, y)
         :param grid_offset: Grid offset in mm, (x, y)
         :param edge_exclusion: Margin from the wafer edge where a red edge exclusion
         ring is drawn in mm.
         :param coverage: Options of 'full', 'inner'. Option 'full' will cover wafer with
          cells, partial cells allowed, 'inner' will only allow full cells
-        :param bg_color: Tuple of (r, g, b), 0-255.
+        :param wafer_edge_color: Tuple of (r, g, b), 0-1 for the wafer edge color.
+        :param map_bg_color: Tuple of (r, g, b), 0-1 for the map background color. If
+        None, the inverted wafer_edge_color will be selected
         :param conversion_factor: Factor to multiply input dimensions with.
         """
 
         assert cell_size[0] > 0
         assert cell_size[1] > 0
         assert coverage.lower() in ["full", "inner"]
+        assert len(wafer_edge_color) == 3
+        assert all([x >= 0 for x in wafer_edge_color])
 
         self.coverage = coverage.lower()
         self.cell_size_x = conversion_factor * cell_size[0]
         self.cell_size_y = conversion_factor * cell_size[1]
         self.cell_margin_x = conversion_factor * cell_margin[0]
         self.cell_margin_y = conversion_factor * cell_margin[1]
+        self.cell_origin_x = int(cell_origin[0])
+        self.cell_origin_y = int(cell_origin[1])
         self.wafer_radius = conversion_factor * wafer_radius
         self.edge_exclusion = conversion_factor * edge_exclusion
         self.grid_offset_x = conversion_factor * grid_offset[0]
@@ -80,7 +89,11 @@ class WaferMap:
         self._num_of_cells_x = math.ceil(2 * self.wafer_radius / self.cell_size_x)
         self._num_of_cells_y = math.ceil(2 * self.wafer_radius / self.cell_size_y)
         self.notch_orientation = notch_orientation
-        wafer_edge_color = utils.rgb_to_html(*utils.complementary(*bg_color))
+        if map_bg_color is None:
+            map_bg_color = utils.to255(*utils.invert(*wafer_edge_color))
+        else:
+            map_bg_color = utils.to255(*map_bg_color)
+        wafer_edge_color = utils.rgb_to_html(*wafer_edge_color)
 
         # init the _cell_map
         # the cell map is a dict that corresponds the pixel coordinates of the bounding
@@ -113,12 +126,13 @@ class WaferMap:
 
         # Add the base layer
         # Create a white image of 4 pixels, and embed it in an url.
-        white_tile = branca.utilities.image_to_url([[bg_color] * 2, [bg_color] * 2])
-        # create base TileLayer (white background)
+        bg_tile = branca.utilities.image_to_url([[map_bg_color] * 2,
+                                                 [map_bg_color] * 2])
+        # create base TileLayer
         self._tile_layer = folium.raster_layers.TileLayer(
-            tiles=white_tile,
+            tiles=bg_tile,
             name="base",
-            attr="white tile",
+            attr="bg tile",
         )
         self._tile_layer.add_to(folium_map)
 
@@ -174,7 +188,7 @@ class WaferMap:
         max_index_y = math.ceil(self._num_of_cells_y / 2) + 1
         for i_x in range(min_index_x, max_index_x):
             for i_y in range(min_index_y, max_index_y):
-                cell_label = (i_y, i_x)
+                cell_label = (i_y - self.cell_origin_y, i_x - self.cell_origin_x)
                 # print a box
                 lower_bound = (
                     (i_y - 0.5) * (self.cell_size_y + self.cell_margin_y)
