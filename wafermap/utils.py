@@ -1,6 +1,5 @@
 """Utility functions"""
 
-import colorsys
 import math
 
 import numpy
@@ -9,14 +8,22 @@ import numpy
 
 
 def rgb_to_html(red: float, green: float, blue: float) -> str:
-    """Convert given rgb color to an HTML code"""
-    return "#%02X%02X%02X" % (red, green, blue)
+    """Convert given rgb 0-1 color to an HTML code"""
+    r, g, b = to255(red, green, blue)
+    return "#%02X%02X%02X" % (r, g, b)
 
 
-def complementary(red: int, green: int, blue: int) -> (int, int, int):
-    """returns RGB components of complementary color"""
-    hsv = colorsys.rgb_to_hsv(red, green, blue)
-    return colorsys.hsv_to_rgb((hsv[0] + 0.5) % 1, hsv[1], hsv[2])
+def invert(red: float, green: float, blue: float) -> (float, float, float):
+    """returns RGB components of inverted color"""
+    return 1.0 - red, 1.0 - green, 1.0 - blue
+
+
+def to255(red: float, green: float, blue: float) -> (int, int, int):
+    """returns RGB color to 0-255 scale"""
+    r = min(round(red * 255), 255)
+    g = min(round(green * 255), 255)
+    b = min(round(blue * 255), 255)
+    return r, g, b
 
 
 # Utility functions
