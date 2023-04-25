@@ -9,16 +9,17 @@ from typing import List, Tuple, Union
 import branca
 import folium
 from folium import Element, IFrame, plugins
+from html2image import Html2Image
 from PIL import Image
 
 from wafermap import utils
 
-try:
-    import selenium
-    from selenium import webdriver
-except ImportError:
-    selenium = None
-    webdriver = None
+# try:
+#     import selenium
+#     from selenium import webdriver
+# except ImportError:
+#     selenium = None
+#     webdriver = None
 
 
 class WaferMap:
@@ -35,8 +36,7 @@ class WaferMap:
         f"font-size: {DEFAULT_LABEL_FONT_SIZE}pt; color: black; text-align: center;"
     )
     IMAGE_SIZE_IN_POPUP = (400, 400)
-    IMAGE_FOLDER = "\\_images\\"
-    MAP_PADDING = (100, 100)  # in pixels (x, y)
+    MAP_PADDING = (110, 0)  # in pixels (x, y)
 
     def __init__(
         self,
@@ -330,28 +330,18 @@ class WaferMap:
 
     def save_png(self, output_file="wafermap.png") -> Union[str, None]:
         """Save current Folium Map to a PNG image. Selenium is required."""
-        if webdriver is None or selenium is None:
-            raise EnvironmentError(
-                "Error: Selenium is required to export to png and is not installed."
-            )
-        assert os.path.splitext(output_file)[1].lower() == ".png"
         # turn on/off relevant layers/controls
         self._cell_labels_layer.show = False
         self._labels_layer.show = True
         self.map.options["zoomControl"] = False
-        try:
-            options = webdriver.edge.options.Options()
-            options.add_argument("--headless=new")
-            edge_driver = webdriver.Edge(options=options)
-            png_image = self.map._to_png(delay=1, driver=edge_driver)
-        except selenium.common.exceptions.SessionNotCreatedException as exc:
-            raise EnvironmentError(
-                f"Error: Edge is not installed. Could not export wafermap to image "
-                f"{output_file}."
-            ) from exc
-
-        with open(output_file, "wb") as png_file:
-            png_file.write(png_image)
+        hti = Html2Image(
+            output_path=os.path.dirname(output_file),
+            custom_flags=["--default-background-color=FFFFFF", "--start-fullscreen"],
+        )
+        html = self.map.get_root().render()
+        hti.screenshot(
+            html_str=html, save_as=os.path.basename(output_file)
+        )  # TODO: to use size=(width, height) instead of cropping with Pillow when funcionality is fixed in chromium (m113)
 
         # crop rest of controls out of image
         image = Image.open(output_file)
@@ -365,6 +355,7 @@ class WaferMap:
             )
         )  # (left, top, right, bottom), origin (0,0) is at the top left of the image
         image.save(output_file)
+
         return output_file
 
     def add_image(
