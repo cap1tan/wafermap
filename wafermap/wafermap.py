@@ -8,18 +8,11 @@ from typing import List, Tuple, Union
 
 import branca
 import folium
-from folium import Element, IFrame, plugins
+from folium import IFrame, plugins
 from html2image import Html2Image
 from PIL import Image
 
 from wafermap import utils
-
-# try:
-#     import selenium
-#     from selenium import webdriver
-# except ImportError:
-#     selenium = None
-#     webdriver = None
 
 
 class WaferMap:
