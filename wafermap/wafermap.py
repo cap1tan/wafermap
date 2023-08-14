@@ -35,14 +35,14 @@ class WaferMap:
         self,
         wafer_radius: float,
         cell_size: Tuple[float, float],
-        cell_margin: tuple[float, float] = (0.0, 0.0),
-        cell_origin: tuple[int, int] = (0, 0),
-        grid_offset: tuple[float, float] = (0.0, 0.0),
+        cell_margin: Tuple[float, float] = (0.0, 0.0),
+        cell_origin: Tuple[int, int] = (0, 0),
+        grid_offset: Tuple[float, float] = (0.0, 0.0),
         edge_exclusion: float = 3.0,
         coverage="full",
         notch_orientation: float = 270.0,
-        wafer_edge_color: tuple[float, float, float] = (0.0, 0.0, 0.0),
-        map_bg_color: Union[None, tuple[float, float, float]] = None,
+        wafer_edge_color: Tuple[float, float, float] = (0.0, 0.0, 0.0),
+        map_bg_color: Union[None, Tuple[float, float, float]] = None,
         conversion_factor: float = 1.0,
     ):
         """
@@ -480,7 +480,7 @@ class WaferMap:
             root_style = {}
         if vector_style is None:
             vector_style = WaferMap.DEFAULT_VECTOR_STYLE
-        if not len(vector_points) == 2:
+        if len(vector_points) != 2:
             return
         if vector_style != WaferMap.DEFAULT_VECTOR_STYLE:
             vector_style = {**WaferMap.DEFAULT_VECTOR_STYLE, **vector_style}
