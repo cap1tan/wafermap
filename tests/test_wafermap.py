@@ -160,6 +160,84 @@ class FunctionalTestsWafermap(unittest.TestCase):
         )
         wm.save_html(".\\tests\\test_wafermap_margin_8_15.html")
 
+    def test_wafermap_cell_origin(self):
+        wm = wafermap.WaferMap(
+            wafer_radius=100,
+            cell_size=(13.702, 24.846),
+            cell_margin=(0, 0),
+            cell_origin=(0, 0),
+            grid_offset=(-2.05, -4.1),
+            edge_exclusion=2.2,
+            coverage="full",
+            notch_orientation=270,
+        )
+        wm.save_html(".\\tests\\test_wafermap_origin_0_0.html")
+
+        wm = wafermap.WaferMap(
+            wafer_radius=100,
+            cell_size=(13.702, 24.846),
+            cell_margin=(0, 0),
+            cell_origin=(2, 1),
+            grid_offset=(-2.05, -4.1),
+            edge_exclusion=2.2,
+            coverage="full",
+            notch_orientation=270,
+        )
+        wm.save_html(".\\tests\\test_wafermap_origin_2_1.html")
+
+        wm = wafermap.WaferMap(
+            wafer_radius=100,
+            cell_size=(13.702, 24.846),
+            cell_margin=(0, 0),
+            cell_origin=(0, -2),
+            grid_offset=(-2.05, -4.1),
+            edge_exclusion=2.2,
+            coverage="full",
+            notch_orientation=270,
+        )
+        wm.save_html(".\\tests\\test_wafermap_origin_0_-2.html")
+
+        wm = wafermap.WaferMap(
+            wafer_radius=100,
+            cell_size=(13.702, 24.846),
+            cell_margin=(0, 0),
+            cell_origin=(0, -10),
+            grid_offset=(-2.05, -4.1),
+            edge_exclusion=2.2,
+            coverage="full",
+            notch_orientation=270,
+        )
+        wm.save_html(".\\tests\\test_wafermap_origin_0_-10.html")
+
+    def test_wafermap_colors(self):
+        wm = wafermap.WaferMap(
+            wafer_radius=100,
+            cell_size=(13.702, 24.846),
+            cell_margin=(0, 0),
+            cell_origin=(0, 0),
+            grid_offset=(-2.05, -4.1),
+            edge_exclusion=2.2,
+            coverage="full",
+            notch_orientation=270,
+            wafer_edge_color=(0.0, 0.1, 0.9),
+            map_bg_color=None,
+        )
+        wm.save_html(".\\tests\\test_wafermap_color1.html")
+
+        wm = wafermap.WaferMap(
+            wafer_radius=100,
+            cell_size=(13.702, 24.846),
+            cell_margin=(0, 0),
+            cell_origin=(0, 0),
+            grid_offset=(-2.05, -4.1),
+            edge_exclusion=2.2,
+            coverage="full",
+            notch_orientation=270,
+            wafer_edge_color=(0, 0, 0),
+            map_bg_color=(0.0, 0.9, 1.0),
+        )
+        wm.save_html(".\\tests\\test_wafermap_color2.html")
+
     def test_wafermap_edge_exclusion(self):
         wm = wafermap.WaferMap(
             wafer_radius=100,
