@@ -21,7 +21,8 @@ from wafermap import utils
 #     selenium = None
 #     webdriver = None
 
-
+# TODO: To inherit WaferMapGrid class
+# TODO: Update dependencies and test them
 class WaferMap:
     """Main WaferMap class. Represents a circular wafer layout, with a grid, an edge
     exclusion, cells and several types of markers (points, vectors, images)."""
@@ -677,3 +678,129 @@ class WaferMap:
 
         for cell_to_style in cells_to_style:
             self._cell_map[cell_to_style][5].options |= cell_style
+
+
+class WaferMapGrid:
+
+    def __init__(
+            self,
+            wafer_radius: float,
+            cell_size: Tuple[float, float],
+            cell_margin=(0.0, 0.0),
+            grid_offset=(0.0, 0.0),
+            edge_exclusion=3,
+            coverage="full",
+            conversion_factor=1,
+    ):
+        """
+        Class that defines a coordinate grid on a wafer. The wafermap origin is always the central die.
+        :param wafer_radius: Wafer diameter in mm
+        :param cell_size: Cell size in mm, (x, y)
+        :param cell_margin: Distance between cells in mm, (x, y)
+        :param grid_offset: Grid offset in mm, (x, y)
+        :param edge_exclusion: Margin from the wafer edge where a red edge exclusion
+        ring is drawn in mm.
+        :param coverage: Options of 'full', 'inner'. Option 'full' will cover wafer with
+         cells, partial cells allowed, 'inner' will only allow full cells
+        :param conversion_factor: Factor to multiply input dimensions with.
+        """
+
+        assert cell_size[0] > 0
+        assert cell_size[1] > 0
+        assert coverage.lower() in ["full", "inner"]
+
+        self.coverage = coverage.lower()
+        self.cell_size_x = conversion_factor * cell_size[0]
+        self.cell_size_y = conversion_factor * cell_size[1]
+        self.cell_margin_x = conversion_factor * cell_margin[0]
+        self.cell_margin_y = conversion_factor * cell_margin[1]
+        self.wafer_radius = conversion_factor * wafer_radius
+        self.edge_exclusion = conversion_factor * edge_exclusion
+        self.grid_offset_x = conversion_factor * grid_offset[0]
+        self.grid_offset_y = conversion_factor * grid_offset[1]
+        self._num_of_cells_x = math.ceil(2 * self.wafer_radius / self.cell_size_x)
+        self._num_of_cells_y = math.ceil(2 * self.wafer_radius / self.cell_size_y)
+
+        # Define grid
+        min_index_x = -math.ceil(self._num_of_cells_x / 2) - 1
+        max_index_x = math.ceil(self._num_of_cells_x / 2) + 1
+        min_index_y = -math.ceil(self._num_of_cells_y / 2) - 1
+        max_index_y = math.ceil(self._num_of_cells_y / 2) + 1
+        for i_x in range(min_index_x, max_index_x):
+            for i_y in range(min_index_y, max_index_y):
+                cell_label = (i_y, i_x)
+                # print a box
+                lower_bound = (
+                    (i_y - 0.5) * (self.cell_size_y + self.cell_margin_y)
+                    + self.grid_offset_y,
+                    (i_x - 0.5) * (self.cell_size_x + self.cell_margin_x)
+                    + self.grid_offset_x,
+                )
+                upper_bound = (
+                    (i_y + 0.5) * (self.cell_size_y + self.cell_margin_y)
+                    + self.grid_offset_y,
+                    (i_x + 0.5) * (self.cell_size_x + self.cell_margin_x)
+                    + self.grid_offset_x,
+                )
+                lower_left = (
+                    lower_bound[0] + self.cell_margin_y / 2,
+                    lower_bound[1] + self.cell_margin_x / 2,
+                )
+                lower_right = (
+                    lower_bound[0] + self.cell_margin_y / 2,
+                    lower_bound[1] + self.cell_size_x - self.cell_margin_x / 2,
+                )
+                upper_left = (
+                    upper_bound[0] - self.cell_margin_y / 2,
+                    upper_bound[1] - self.cell_size_x + self.cell_margin_x / 2,
+                )
+                upper_right = (
+                    upper_bound[0] - self.cell_margin_y / 2,
+                    upper_bound[1] - self.cell_margin_x / 2,
+                )
+                bounds = (lower_left, lower_right, upper_left, upper_right)
+                center = (
+                    (lower_left[0] + upper_left[0]) / 2,
+                    (lower_left[1] + lower_right[1]) / 2,
+                )
+
+                in_for_full = any(
+                    list(
+                        map(
+                            lambda points: utils.euclidean_distance(points)
+                                           <= self.wafer_radius,
+                            bounds,
+                        )
+                    )
+                )
+                in_for_inner = all(
+                    list(
+                        map(
+                            lambda points: utils.euclidean_distance(points)
+                                           <= self.wafer_radius,
+                            bounds,
+                        )
+                    )
+                )
+
+                if (self.coverage == "full" and in_for_full) or (
+                        self.coverage == "inner" and in_for_inner
+                ):
+                    self._cell_map[cell_label] = bounds + (center,)  # in (y,x)
+
+    @property
+    def cell_map(self):
+        # Internal attribute _cell_map uses (y,x) convention while WaferMap interfaces
+        # with (x,y). Therefore, we provide cell_map as a property to interface with
+        # outside the class, which fully converts _cell_map from (y,x) to (x,y)
+        cell_map = {}
+        for _cell_idx, _cell in self._cell_map.items():
+            cell_idx = _cell_idx[1], _cell_idx[0]
+            cell = ()
+            for _cell_item in _cell:
+                if type(_cell_item) is tuple:
+                    cell += ((_cell_item[1], _cell_item[0]),)
+                else:
+                    cell += (_cell_item,)
+            cell_map[cell_idx] = cell
+        return cell_map
