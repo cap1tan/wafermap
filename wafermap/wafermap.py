@@ -60,7 +60,6 @@ class WaferMapGrid:
         self._num_of_cells_x = math.ceil(2 * self.wafer_radius / self.cell_size_x)
         self._num_of_cells_y = math.ceil(2 * self.wafer_radius / self.cell_size_y)
 
-
         # init the _cell_map
         # the cell map is a dict that corresponds the pixel coordinates of the bounding
         # box of each cell to the cell index:
@@ -121,7 +120,7 @@ class WaferMapGrid:
                     list(
                         map(
                             lambda points: utils.euclidean_distance(points)
-                                           <= self.wafer_radius,
+                            <= self.wafer_radius,
                             bounds,
                         )
                     )
@@ -130,14 +129,14 @@ class WaferMapGrid:
                     list(
                         map(
                             lambda points: utils.euclidean_distance(points)
-                                           <= self.wafer_radius,
+                            <= self.wafer_radius,
                             bounds,
                         )
                     )
                 )
 
                 if (self.coverage == "full" and in_for_full) or (
-                        self.coverage == "inner" and in_for_inner
+                    self.coverage == "inner" and in_for_inner
                 ):
                     self._cell_map[cell_label] = bounds + (center,)  # in (y,x)
 
@@ -209,7 +208,16 @@ class WaferMap(WaferMapGrid):
         assert len(wafer_edge_color) == 3
         assert all([x >= 0 for x in wafer_edge_color])
 
-        super().__init__(wafer_radius, cell_size, cell_margin, cell_origin, grid_offset, edge_exclusion, coverage, conversion_factor)
+        super().__init__(
+            wafer_radius,
+            cell_size,
+            cell_margin,
+            cell_origin,
+            grid_offset,
+            edge_exclusion,
+            coverage,
+            conversion_factor,
+        )
 
         self.edge_exclusion = conversion_factor * edge_exclusion
         self.notch_orientation = notch_orientation
@@ -293,33 +301,39 @@ class WaferMap(WaferMapGrid):
             ).add_to(self._edge_exclusion_layer)
 
         # Add grid
-        for cell_label, (lower_left, lower_right, upper_left, upper_right, center) in self._cell_map.items():
-                # add the folium Rectangle to the _cell_map
-                self._cell_map[cell_label] += (
-                    folium.vector_layers.Rectangle(
-                        [lower_left, upper_right],
-                        popup=None,
-                        tooltip=None,
-                        color="#142d2d",
-                        weight=0.2,
-                        fill=False,
-                    ),
-                )
-                self._cell_map[cell_label][5].add_to(self._grid_layer)
+        for cell_label, (
+            lower_left,
+            lower_right,
+            upper_left,
+            upper_right,
+            center,
+        ) in self._cell_map.items():
+            # add the folium Rectangle to the _cell_map
+            self._cell_map[cell_label] += (
+                folium.vector_layers.Rectangle(
+                    [lower_left, upper_right],
+                    popup=None,
+                    tooltip=None,
+                    color="#142d2d",
+                    weight=0.2,
+                    fill=False,
+                ),
+            )
+            self._cell_map[cell_label][5].add_to(self._grid_layer)
 
-                # print labels
-                folium.map.Marker(
-                    [
-                        lower_left[0] + (0.5 * self.cell_size_y),
-                        lower_left[1] + (0.5 * self.cell_size_x),
-                    ],
-                    icon=folium.features.DivIcon(
-                        icon_size=(50, 20),
-                        icon_anchor=(25, 10),
-                        html=f'<div style="font-size: 8pt; color: black;'
-                        f'text-align: center">{str(cell_label)}</div>',
-                    ),
-                ).add_to(self._cell_labels_layer)
+            # print labels
+            folium.map.Marker(
+                [
+                    lower_left[0] + (0.5 * self.cell_size_y),
+                    lower_left[1] + (0.5 * self.cell_size_x),
+                ],
+                icon=folium.features.DivIcon(
+                    icon_size=(50, 20),
+                    icon_anchor=(25, 10),
+                    html=f'<div style="font-size: 8pt; color: black;'
+                    f'text-align: center">{str(cell_label)}</div>',
+                ),
+            ).add_to(self._cell_labels_layer)
 
         self._grid_layer.add_to(folium_map)
         self._cell_labels_layer.add_to(folium_map)
@@ -367,12 +381,14 @@ class WaferMap(WaferMapGrid):
         self.map.options["zoomControl"] = False
         hti = Html2Image(
             output_path=os.path.dirname(output_file),
-            custom_flags=["--default-background-color=FFFFFF",
-                          "--start-fullscreen",
-                          "--headless",
-                          "--virtual-time-budget=600",
-                          "--hide-scrollbars",
-                          f"--window-size={WaferMap.IMAGE_RESOLUTION[0]},{WaferMap.IMAGE_RESOLUTION[1]}"],
+            custom_flags=[
+                "--default-background-color=FFFFFF",
+                "--start-fullscreen",
+                "--headless",
+                "--virtual-time-budget=600",
+                "--hide-scrollbars",
+                f"--window-size={WaferMap.IMAGE_RESOLUTION[0]},{WaferMap.IMAGE_RESOLUTION[1]}",
+            ],
         )
         html = self.map.get_root().render()
         screenshot_files = hti.screenshot(
@@ -389,9 +405,9 @@ class WaferMap(WaferMapGrid):
             max_dim = max(width, height)
             image = image.crop(
                 (
-                    int((max_dim - min_dim)/2),
+                    int((max_dim - min_dim) / 2),
                     0,
-                    int((max_dim + min_dim)/2),
+                    int((max_dim + min_dim) / 2),
                     min_dim,
                 )
             )  # (left, top, right, bottom), origin (0,0) is at the top left of the image

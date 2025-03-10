@@ -1,5 +1,7 @@
 """Automated testing functions"""
+
 import os.path
+
 # pylint: disable=redefined-outer-name, missing-function-docstring, invalid-name
 
 import random as rnd
@@ -70,7 +72,11 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
             conversion_factor=1,
         )
-        wm.save_html(os.path.join(self.output_dir, "test_wafermap_inner_150_with_conversion.html"))
+        wm.save_html(
+            os.path.join(
+                self.output_dir, "test_wafermap_inner_150_with_conversion.html"
+            )
+        )
 
         wm = wafermap.WaferMap(
             wafer_radius=150,
@@ -263,7 +269,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=270,
         )
-        wm.save_png(os.path.join(self.output_dir, "test_wafermap_png1.png"), autocrop=False)
+        wm.save_png(
+            os.path.join(self.output_dir, "test_wafermap_png1.png"), autocrop=False
+        )
 
     def test_wafermap_png2(self):
         wm = wafermap.WaferMap(
@@ -274,7 +282,10 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=270,
         )
-        wm.save_png(os.path.join(self.output_dir, "test_wafermap_png2_autocrop.png"), autocrop=True)
+        wm.save_png(
+            os.path.join(self.output_dir, "test_wafermap_png2_autocrop.png"),
+            autocrop=True,
+        )
 
     def test_wafermap_add_image1(self):
         wm = wafermap.WaferMap(
@@ -642,6 +653,8 @@ class FunctionalTestsWafermap(unittest.TestCase):
                 )
 
         # save to png
-        wm.save_png(os.path.join(self.output_dir, "test_wafermap_example1.png"), autocrop=True)
+        wm.save_png(
+            os.path.join(self.output_dir, "test_wafermap_example1.png"), autocrop=True
+        )
         # save to html
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_example1.html"))
