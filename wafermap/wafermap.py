@@ -8,60 +8,37 @@ from typing import List, Tuple, Union
 
 import branca
 import folium
-from folium import Element, IFrame, plugins
+from folium import IFrame, plugins
 from html2image import Html2Image
 from PIL import Image
 
 from wafermap import utils
 
-# try:
-#     import selenium
-#     from selenium import webdriver
-# except ImportError:
-#     selenium = None
-#     webdriver = None
 
-# TODO: To inherit WaferMapGrid class
-# TODO: Update dependencies and test them
-class WaferMap:
-    """Main WaferMap class. Represents a circular wafer layout, with a grid, an edge
-    exclusion, cells and several types of markers (points, vectors, images)."""
-
-    NOTCH_HEIGHT = 1
-    NOTCH_WIDTH = 2.8284
-    DEFAULT_MARKER_STYLE = {"color": "#ff0000", "fill": True}
-    DEFAULT_VECTOR_STYLE = {"color": "#009900", "weight": 1}
-    DEFAULT_POINT_STYLE = {"radius": 0.5, "fill": True}
-    DEFAULT_LABEL_FONT_SIZE = 8
-    DEFAULT_LABEL_HTML_STYLE = (
-        f"font-size: {DEFAULT_LABEL_FONT_SIZE}pt; color: black; text-align: center;"
-    )
-    IMAGE_SIZE_IN_POPUP = (400, 400)
-    MAP_PADDING = (110, 0)  # in pixels (x, y)
+class WaferMapGrid:
 
     def __init__(
         self,
         wafer_radius: float,
         cell_size: Tuple[float, float],
-        cell_margin=(0.0, 0.0),
-        grid_offset=(0.0, 0.0),
-        edge_exclusion=3,
+        cell_margin: Tuple[float, float] = (0.0, 0.0),
+        cell_origin: Tuple[int, int] = (0, 0),
+        grid_offset: Tuple[float, float] = (0.0, 0.0),
+        edge_exclusion: float = 3.0,
         coverage="full",
-        notch_orientation=270,
-        bg_color=(1, 1, 1),
-        conversion_factor=1,
+        conversion_factor: float = 1.0,
     ):
         """
-        The wafermap origin is always the central die.
+        The WaferMap base class. Represents a circular wafer layout, with a grid, an edge exclusion and cells.
         :param wafer_radius: Wafer diameter in mm
         :param cell_size: Cell size in mm, (x, y)
         :param cell_margin: Distance between cells in mm, (x, y)
+        :param cell_origin: The cell index that is the origin (0, 0) of the map, (x, y).
         :param grid_offset: Grid offset in mm, (x, y)
         :param edge_exclusion: Margin from the wafer edge where a red edge exclusion
         ring is drawn in mm.
         :param coverage: Options of 'full', 'inner'. Option 'full' will cover wafer with
          cells, partial cells allowed, 'inner' will only allow full cells
-        :param bg_color: Tuple of (r, g, b), 0-255.
         :param conversion_factor: Factor to multiply input dimensions with.
         """
 
@@ -74,14 +51,15 @@ class WaferMap:
         self.cell_size_y = conversion_factor * cell_size[1]
         self.cell_margin_x = conversion_factor * cell_margin[0]
         self.cell_margin_y = conversion_factor * cell_margin[1]
+        self.cell_origin_x = int(cell_origin[0])
+        self.cell_origin_y = int(cell_origin[1])
         self.wafer_radius = conversion_factor * wafer_radius
         self.edge_exclusion = conversion_factor * edge_exclusion
         self.grid_offset_x = conversion_factor * grid_offset[0]
         self.grid_offset_y = conversion_factor * grid_offset[1]
         self._num_of_cells_x = math.ceil(2 * self.wafer_radius / self.cell_size_x)
         self._num_of_cells_y = math.ceil(2 * self.wafer_radius / self.cell_size_y)
-        self.notch_orientation = notch_orientation
-        wafer_edge_color = utils.rgb_to_html(*utils.complementary(*bg_color))
+
 
         # init the _cell_map
         # the cell map is a dict that corresponds the pixel coordinates of the bounding
@@ -90,12 +68,156 @@ class WaferMap:
         #                     (y_lower_right, x_lower_right),
         #                     (y_upper_left, x_upper_left),
         #                     (y_upper_right, x_upper_right),
-        #                     (y_cell_center, x_cell_center),
-        #                     folium.vector_layers.Rectangle
+        #                     (y_cell_center, x_cell_center)
         #                     )}
         # We consider the cell origin to be its lower left corner
         # y is latitude, x is longitude
         self._cell_map = {}
+
+        # Add grid
+        min_index_x = -math.ceil(self._num_of_cells_x / 2) - 1
+        max_index_x = math.ceil(self._num_of_cells_x / 2) + 1
+        min_index_y = -math.ceil(self._num_of_cells_y / 2) - 1
+        max_index_y = math.ceil(self._num_of_cells_y / 2) + 1
+        for i_x in range(min_index_x, max_index_x):
+            for i_y in range(min_index_y, max_index_y):
+                cell_label = (i_y - self.cell_origin_y, i_x - self.cell_origin_x)
+                # print a box
+                lower_bound = (
+                    (i_y - 0.5) * (self.cell_size_y + self.cell_margin_y)
+                    + self.grid_offset_y,
+                    (i_x - 0.5) * (self.cell_size_x + self.cell_margin_x)
+                    + self.grid_offset_x,
+                )
+                upper_bound = (
+                    (i_y + 0.5) * (self.cell_size_y + self.cell_margin_y)
+                    + self.grid_offset_y,
+                    (i_x + 0.5) * (self.cell_size_x + self.cell_margin_x)
+                    + self.grid_offset_x,
+                )
+                lower_left = (
+                    lower_bound[0] + self.cell_margin_y / 2,
+                    lower_bound[1] + self.cell_margin_x / 2,
+                )
+                lower_right = (
+                    lower_bound[0] + self.cell_margin_y / 2,
+                    lower_bound[1] + self.cell_size_x - self.cell_margin_x / 2,
+                )
+                upper_left = (
+                    upper_bound[0] - self.cell_margin_y / 2,
+                    upper_bound[1] - self.cell_size_x + self.cell_margin_x / 2,
+                )
+                upper_right = (
+                    upper_bound[0] - self.cell_margin_y / 2,
+                    upper_bound[1] - self.cell_margin_x / 2,
+                )
+                bounds = (lower_left, lower_right, upper_left, upper_right)
+                center = (
+                    (lower_left[0] + upper_left[0]) / 2,
+                    (lower_left[1] + lower_right[1]) / 2,
+                )
+
+                in_for_full = any(
+                    list(
+                        map(
+                            lambda points: utils.euclidean_distance(points)
+                                           <= self.wafer_radius,
+                            bounds,
+                        )
+                    )
+                )
+                in_for_inner = all(
+                    list(
+                        map(
+                            lambda points: utils.euclidean_distance(points)
+                                           <= self.wafer_radius,
+                            bounds,
+                        )
+                    )
+                )
+
+                if (self.coverage == "full" and in_for_full) or (
+                        self.coverage == "inner" and in_for_inner
+                ):
+                    self._cell_map[cell_label] = bounds + (center,)  # in (y,x)
+
+    @property
+    def cell_map(self):
+        # Internal attribute _cell_map uses (y,x) convention while WaferMap interfaces
+        # with (x,y). Therefore, we provide cell_map as a property to interface with
+        # outside the class, which fully converts _cell_map from (y,x) to (x,y)
+        cell_map = {}
+        for _cell_idx, _cell in self._cell_map.items():
+            cell_idx = _cell_idx[1], _cell_idx[0]
+            cell = ()
+            for _cell_item in _cell:
+                if type(_cell_item) is tuple:
+                    cell += ((_cell_item[1], _cell_item[0]),)
+                else:
+                    cell += (_cell_item,)
+            cell_map[cell_idx] = cell
+        return cell_map
+
+
+class WaferMap(WaferMapGrid):
+
+    IMAGE_RESOLUTION = (2560, 1440)
+    NOTCH_HEIGHT = 1
+    NOTCH_WIDTH = 2.8284
+    DEFAULT_MARKER_STYLE = {"color": "#ff0000", "fill": True}
+    DEFAULT_VECTOR_STYLE = {"color": "#009900", "weight": 1}
+    DEFAULT_POINT_STYLE = {"radius": 0.5, "fill": True}
+    DEFAULT_LABEL_FONT_SIZE = 8
+    DEFAULT_LABEL_HTML_STYLE = (
+        f"font-size: {DEFAULT_LABEL_FONT_SIZE}pt; color: black; text-align: center;"
+    )
+    IMAGE_SIZE_IN_POPUP = (400, 400)
+    MAP_PADDING = (50, 50)  # in pixels (x, y)
+
+    def __init__(
+        self,
+        wafer_radius: float,
+        cell_size: Tuple[float, float],
+        cell_margin: Tuple[float, float] = (0.0, 0.0),
+        cell_origin: Tuple[int, int] = (0, 0),
+        grid_offset: Tuple[float, float] = (0.0, 0.0),
+        edge_exclusion: float = 3.0,
+        coverage="full",
+        notch_orientation: float = 270.0,
+        wafer_edge_color: Tuple[float, float, float] = (0.0, 0.0, 0.0),
+        map_bg_color: Union[None, Tuple[float, float, float]] = None,
+        conversion_factor: float = 1.0,
+    ):
+        """
+        Main WaferMap class. Represents a circular wafer layout, with a grid, an edge exclusion, cells and several types
+        of markers (points, vectors, images).It uses folium dynamic maps as a rendering backend.
+        :param wafer_radius: Wafer diameter in mm
+        :param cell_size: Cell size in mm, (x, y)
+        :param cell_margin: Distance between cells in mm, (x, y)
+        :param cell_origin: The cell index that is the origin (0, 0) of the map, (x, y)
+        :param grid_offset: Grid offset in mm, (x, y)
+        :param edge_exclusion: Margin from the wafer edge where a red edge exclusion
+        ring is drawn in mm.
+        :param coverage: Options of 'full', 'inner'. Option 'full' will cover wafer with
+         cells, partial cells allowed, 'inner' will only allow full cells
+        :param wafer_edge_color: Tuple of (r, g, b), 0-1 for the wafer edge color.
+        :param map_bg_color: Tuple of (r, g, b), 0-1 for the map background color. If
+        None, the inverted wafer_edge_color will be selected
+        :param conversion_factor: Factor to multiply input dimensions with.
+        """
+
+        assert len(wafer_edge_color) == 3
+        assert all([x >= 0 for x in wafer_edge_color])
+
+        super().__init__(wafer_radius, cell_size, cell_margin, cell_origin, grid_offset, edge_exclusion, coverage, conversion_factor)
+
+        self.edge_exclusion = conversion_factor * edge_exclusion
+        self.notch_orientation = notch_orientation
+        if map_bg_color is None:
+            map_bg_color = utils.to255(*utils.invert(*wafer_edge_color))
+        else:
+            map_bg_color = utils.to255(*map_bg_color)
+        wafer_edge_color = utils.rgb_to_html(*wafer_edge_color)
 
         # Init the folium map
         folium_map = folium.Map(
@@ -105,7 +227,7 @@ class WaferMap:
             control_scale=False,
             zoom_control=False,
             zoom_start=1,
-            min_zoom=0.1,
+            min_zoom=1,
             max_zoom=1000,
             zoomSnap=0,
             zoomDelta=0.1,
@@ -114,12 +236,14 @@ class WaferMap:
 
         # Add the base layer
         # Create a white image of 4 pixels, and embed it in an url.
-        white_tile = branca.utilities.image_to_url([[bg_color] * 2, [bg_color] * 2])
-        # create base TileLayer (white background)
+        bg_tile = branca.utilities.image_to_url(
+            [[map_bg_color] * 2, [map_bg_color] * 2]
+        )
+        # create base TileLayer
         self._tile_layer = folium.raster_layers.TileLayer(
-            tiles=white_tile,
+            tiles=bg_tile,
             name="base",
-            attr="white tile",
+            attr="bg tile",
         )
         self._tile_layer.add_to(folium_map)
 
@@ -169,96 +293,33 @@ class WaferMap:
             ).add_to(self._edge_exclusion_layer)
 
         # Add grid
-        min_index_x = -math.ceil(self._num_of_cells_x / 2) - 1
-        max_index_x = math.ceil(self._num_of_cells_x / 2) + 1
-        min_index_y = -math.ceil(self._num_of_cells_y / 2) - 1
-        max_index_y = math.ceil(self._num_of_cells_y / 2) + 1
-        for i_x in range(min_index_x, max_index_x):
-            for i_y in range(min_index_y, max_index_y):
-                cell_label = (i_y, i_x)
-                # print a box
-                lower_bound = (
-                    (i_y - 0.5) * (self.cell_size_y + self.cell_margin_y)
-                    + self.grid_offset_y,
-                    (i_x - 0.5) * (self.cell_size_x + self.cell_margin_x)
-                    + self.grid_offset_x,
+        for cell_label, (lower_left, lower_right, upper_left, upper_right, center) in self._cell_map.items():
+                # add the folium Rectangle to the _cell_map
+                self._cell_map[cell_label] += (
+                    folium.vector_layers.Rectangle(
+                        [lower_left, upper_right],
+                        popup=None,
+                        tooltip=None,
+                        color="#142d2d",
+                        weight=0.2,
+                        fill=False,
+                    ),
                 )
-                upper_bound = (
-                    (i_y + 0.5) * (self.cell_size_y + self.cell_margin_y)
-                    + self.grid_offset_y,
-                    (i_x + 0.5) * (self.cell_size_x + self.cell_margin_x)
-                    + self.grid_offset_x,
-                )
-                lower_left = (
-                    lower_bound[0] + self.cell_margin_y / 2,
-                    lower_bound[1] + self.cell_margin_x / 2,
-                )
-                lower_right = (
-                    lower_bound[0] + self.cell_margin_y / 2,
-                    lower_bound[1] + self.cell_size_x - self.cell_margin_x / 2,
-                )
-                upper_left = (
-                    upper_bound[0] - self.cell_margin_y / 2,
-                    upper_bound[1] - self.cell_size_x + self.cell_margin_x / 2,
-                )
-                upper_right = (
-                    upper_bound[0] - self.cell_margin_y / 2,
-                    upper_bound[1] - self.cell_margin_x / 2,
-                )
-                bounds = (lower_left, lower_right, upper_left, upper_right)
-                center = (
-                    (lower_left[0] + upper_left[0]) / 2,
-                    (lower_left[1] + lower_right[1]) / 2,
-                )
+                self._cell_map[cell_label][5].add_to(self._grid_layer)
 
-                in_for_full = any(
-                    list(
-                        map(
-                            lambda points: utils.euclidean_distance(points)
-                            <= self.wafer_radius,
-                            bounds,
-                        )
-                    )
-                )
-                in_for_inner = all(
-                    list(
-                        map(
-                            lambda points: utils.euclidean_distance(points)
-                            <= self.wafer_radius,
-                            bounds,
-                        )
-                    )
-                )
-
-                if (self.coverage == "full" and in_for_full) or (
-                    self.coverage == "inner" and in_for_inner
-                ):
-                    self._cell_map[cell_label] = bounds + (center,)  # in (y,x)
-                    self._cell_map[cell_label] += (
-                        folium.vector_layers.Rectangle(
-                            [lower_left, upper_right],
-                            popup=None,
-                            tooltip=None,
-                            color="#142d2d",
-                            weight=0.2,
-                            fill=False,
-                        ),
-                    )
-                    self._cell_map[cell_label][5].add_to(self._grid_layer)
-
-                    # print labels
-                    folium.map.Marker(
-                        [
-                            lower_left[0] + (0.5 * self.cell_size_y),
-                            lower_left[1] + (0.5 * self.cell_size_x),
-                        ],
-                        icon=folium.features.DivIcon(
-                            icon_size=(50, 20),
-                            icon_anchor=(25, 10),
-                            html=f'<div style="font-size: 8pt; color: black;'
-                            f'text-align: center">{str(cell_label)}</div>',
-                        ),
-                    ).add_to(self._cell_labels_layer)
+                # print labels
+                folium.map.Marker(
+                    [
+                        lower_left[0] + (0.5 * self.cell_size_y),
+                        lower_left[1] + (0.5 * self.cell_size_x),
+                    ],
+                    icon=folium.features.DivIcon(
+                        icon_size=(50, 20),
+                        icon_anchor=(25, 10),
+                        html=f'<div style="font-size: 8pt; color: black;'
+                        f'text-align: center">{str(cell_label)}</div>',
+                    ),
+                ).add_to(self._cell_labels_layer)
 
         self._grid_layer.add_to(folium_map)
         self._cell_labels_layer.add_to(folium_map)
@@ -285,25 +346,8 @@ class WaferMap:
                 (-self.wafer_radius, -self.wafer_radius),
                 (self.wafer_radius, self.wafer_radius),
             ],
-            padding=(WaferMap.MAP_PADDING[0], WaferMap.MAP_PADDING[1]),
+            padding=WaferMap.MAP_PADDING,
         )  # padding is in pixels while the zoom box is in (long, lat)
-
-    @property
-    def cell_map(self):
-        # Internal attribute _cell_map uses (y,x) convention while WaferMap interfaces
-        # with (x,y). Therefore, we provide cell_map as a property to interface with
-        # outside the class, which fully converts _cell_map from (y,x) to (x,y)
-        cell_map = {}
-        for _cell_idx, _cell in self._cell_map.items():
-            cell_idx = _cell_idx[1], _cell_idx[0]
-            cell = ()
-            for _cell_item in _cell:
-                if type(_cell_item) is tuple:
-                    cell += ((_cell_item[1], _cell_item[0]),)
-                else:
-                    cell += (_cell_item,)
-            cell_map[cell_idx] = cell
-        return cell_map
 
     def save_html(self, output_file="wafermap.html") -> str:
         """Save current Folium Map to HTML."""
@@ -315,35 +359,45 @@ class WaferMap:
         self.map.save(output_file)
         return output_file
 
-    def save_png(self, output_file="wafermap.png") -> Union[str, None]:
-        """Save current Folium Map to a PNG image. Selenium is required."""
+    def save_png(self, output_file="wafermap.png", autocrop=False) -> Union[str, None]:
+        """Save current Folium Map to a PNG image. html2image is required. autocrop will crop the white parts of the screenshot"""
         # turn on/off relevant layers/controls
         self._cell_labels_layer.show = False
         self._labels_layer.show = True
         self.map.options["zoomControl"] = False
         hti = Html2Image(
             output_path=os.path.dirname(output_file),
-            custom_flags=["--default-background-color=FFFFFF", "--start-fullscreen"],
+            custom_flags=["--default-background-color=FFFFFF",
+                          "--start-fullscreen",
+                          "--headless",
+                          "--virtual-time-budget=600",
+                          "--hide-scrollbars",
+                          f"--window-size={WaferMap.IMAGE_RESOLUTION[0]},{WaferMap.IMAGE_RESOLUTION[1]}"],
         )
         html = self.map.get_root().render()
-        hti.screenshot(
+        screenshot_files = hti.screenshot(
             html_str=html, save_as=os.path.basename(output_file)
-        )  # TODO: to use size=(width, height) instead of cropping with Pillow when funcionality is fixed in chromium (m113)
+        )  # TODO: to use size=(width, height) instead of cropping with Pillow when functionality is fixed in chromium (m113) (still valid on 10/3/2025)
+        screenshot_file = screenshot_files[0]
 
-        # crop rest of controls out of image
-        image = Image.open(output_file)
-        width, height = image.size
-        image = image.crop(
-            (
-                WaferMap.MAP_PADDING[0],
-                WaferMap.MAP_PADDING[1],
-                width - WaferMap.MAP_PADDING[0],
-                height - WaferMap.MAP_PADDING[1],
-            )
-        )  # (left, top, right, bottom), origin (0,0) is at the top left of the image
-        image.save(output_file)
+        if autocrop:
+            # crop rest of controls out of image
+            # TODO: Implement auto detection of border
+            image = Image.open(screenshot_file)
+            width, height = image.size
+            min_dim = min(width, height)
+            max_dim = max(width, height)
+            image = image.crop(
+                (
+                    int((max_dim - min_dim)/2),
+                    0,
+                    int((max_dim + min_dim)/2),
+                    min_dim,
+                )
+            )  # (left, top, right, bottom), origin (0,0) is at the top left of the image
+            image.save(screenshot_file)
 
-        return output_file
+        return screenshot_file
 
     def add_image(
         self,
@@ -441,7 +495,7 @@ class WaferMap:
                 f'alt="{os.path.basename(image_source_file)}"></body><html>'
             )
             iframe = IFrame(
-                html_popup, width=image_width + 20, height=image_height + 20
+                html_popup, width=str(image_width + 20), height=str(image_height + 20)
             )
             image_popup = folium.Popup(iframe, parse_html=True, max_width=800)
 
@@ -473,7 +527,7 @@ class WaferMap:
             root_style = {}
         if vector_style is None:
             vector_style = WaferMap.DEFAULT_VECTOR_STYLE
-        if not len(vector_points) == 2:
+        if len(vector_points) != 2:
             return
         if vector_style != WaferMap.DEFAULT_VECTOR_STYLE:
             vector_style = {**WaferMap.DEFAULT_VECTOR_STYLE, **vector_style}
@@ -640,11 +694,11 @@ class WaferMap:
         # label size
         # 1pt is 1.333px
         label_size_px = (
-            min(len(label_text) * WaferMap.DEFAULT_LABEL_FONT_SIZE * 1.333, 100),
-            min(WaferMap.DEFAULT_LABEL_FONT_SIZE * 1.333, 100),
+            int(min(len(label_text) * WaferMap.DEFAULT_LABEL_FONT_SIZE * 1.333, 100)),
+            int(min(WaferMap.DEFAULT_LABEL_FONT_SIZE * 1.333, 100)),
         )
         # put the label anchor at the center of the label
-        label_anchor_px = (label_size_px[0] / 2, label_size_px[1] / 2)
+        label_anchor_px = (int(label_size_px[0] / 2), int(label_size_px[1] / 2))
         folium.map.Marker(
             location=label_origin,
             icon=folium.features.DivIcon(
@@ -678,129 +732,3 @@ class WaferMap:
 
         for cell_to_style in cells_to_style:
             self._cell_map[cell_to_style][5].options |= cell_style
-
-
-class WaferMapGrid:
-
-    def __init__(
-            self,
-            wafer_radius: float,
-            cell_size: Tuple[float, float],
-            cell_margin=(0.0, 0.0),
-            grid_offset=(0.0, 0.0),
-            edge_exclusion=3,
-            coverage="full",
-            conversion_factor=1,
-    ):
-        """
-        Class that defines a coordinate grid on a wafer. The wafermap origin is always the central die.
-        :param wafer_radius: Wafer diameter in mm
-        :param cell_size: Cell size in mm, (x, y)
-        :param cell_margin: Distance between cells in mm, (x, y)
-        :param grid_offset: Grid offset in mm, (x, y)
-        :param edge_exclusion: Margin from the wafer edge where a red edge exclusion
-        ring is drawn in mm.
-        :param coverage: Options of 'full', 'inner'. Option 'full' will cover wafer with
-         cells, partial cells allowed, 'inner' will only allow full cells
-        :param conversion_factor: Factor to multiply input dimensions with.
-        """
-
-        assert cell_size[0] > 0
-        assert cell_size[1] > 0
-        assert coverage.lower() in ["full", "inner"]
-
-        self.coverage = coverage.lower()
-        self.cell_size_x = conversion_factor * cell_size[0]
-        self.cell_size_y = conversion_factor * cell_size[1]
-        self.cell_margin_x = conversion_factor * cell_margin[0]
-        self.cell_margin_y = conversion_factor * cell_margin[1]
-        self.wafer_radius = conversion_factor * wafer_radius
-        self.edge_exclusion = conversion_factor * edge_exclusion
-        self.grid_offset_x = conversion_factor * grid_offset[0]
-        self.grid_offset_y = conversion_factor * grid_offset[1]
-        self._num_of_cells_x = math.ceil(2 * self.wafer_radius / self.cell_size_x)
-        self._num_of_cells_y = math.ceil(2 * self.wafer_radius / self.cell_size_y)
-
-        # Define grid
-        min_index_x = -math.ceil(self._num_of_cells_x / 2) - 1
-        max_index_x = math.ceil(self._num_of_cells_x / 2) + 1
-        min_index_y = -math.ceil(self._num_of_cells_y / 2) - 1
-        max_index_y = math.ceil(self._num_of_cells_y / 2) + 1
-        for i_x in range(min_index_x, max_index_x):
-            for i_y in range(min_index_y, max_index_y):
-                cell_label = (i_y, i_x)
-                # print a box
-                lower_bound = (
-                    (i_y - 0.5) * (self.cell_size_y + self.cell_margin_y)
-                    + self.grid_offset_y,
-                    (i_x - 0.5) * (self.cell_size_x + self.cell_margin_x)
-                    + self.grid_offset_x,
-                )
-                upper_bound = (
-                    (i_y + 0.5) * (self.cell_size_y + self.cell_margin_y)
-                    + self.grid_offset_y,
-                    (i_x + 0.5) * (self.cell_size_x + self.cell_margin_x)
-                    + self.grid_offset_x,
-                )
-                lower_left = (
-                    lower_bound[0] + self.cell_margin_y / 2,
-                    lower_bound[1] + self.cell_margin_x / 2,
-                )
-                lower_right = (
-                    lower_bound[0] + self.cell_margin_y / 2,
-                    lower_bound[1] + self.cell_size_x - self.cell_margin_x / 2,
-                )
-                upper_left = (
-                    upper_bound[0] - self.cell_margin_y / 2,
-                    upper_bound[1] - self.cell_size_x + self.cell_margin_x / 2,
-                )
-                upper_right = (
-                    upper_bound[0] - self.cell_margin_y / 2,
-                    upper_bound[1] - self.cell_margin_x / 2,
-                )
-                bounds = (lower_left, lower_right, upper_left, upper_right)
-                center = (
-                    (lower_left[0] + upper_left[0]) / 2,
-                    (lower_left[1] + lower_right[1]) / 2,
-                )
-
-                in_for_full = any(
-                    list(
-                        map(
-                            lambda points: utils.euclidean_distance(points)
-                                           <= self.wafer_radius,
-                            bounds,
-                        )
-                    )
-                )
-                in_for_inner = all(
-                    list(
-                        map(
-                            lambda points: utils.euclidean_distance(points)
-                                           <= self.wafer_radius,
-                            bounds,
-                        )
-                    )
-                )
-
-                if (self.coverage == "full" and in_for_full) or (
-                        self.coverage == "inner" and in_for_inner
-                ):
-                    self._cell_map[cell_label] = bounds + (center,)  # in (y,x)
-
-    @property
-    def cell_map(self):
-        # Internal attribute _cell_map uses (y,x) convention while WaferMap interfaces
-        # with (x,y). Therefore, we provide cell_map as a property to interface with
-        # outside the class, which fully converts _cell_map from (y,x) to (x,y)
-        cell_map = {}
-        for _cell_idx, _cell in self._cell_map.items():
-            cell_idx = _cell_idx[1], _cell_idx[0]
-            cell = ()
-            for _cell_item in _cell:
-                if type(_cell_item) is tuple:
-                    cell += ((_cell_item[1], _cell_item[0]),)
-                else:
-                    cell += (_cell_item,)
-            cell_map[cell_idx] = cell
-        return cell_map

@@ -1,6 +1,8 @@
 # Test files (user-defined)
-tests/test*.html
-tests/test*.png
+tests/*.html
+tests/*.png
+tests/*.jpg
+tests/tests_output/
 tests/geckodriver.log
 
 # Byte-compiled / optimized / DLL files
