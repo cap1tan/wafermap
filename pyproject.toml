@@ -1,23 +1,23 @@
-[tool.poetry]
+[project]
 name = "wafermap"
 version = "0.2.7"
 description = "A python package to plot maps of semiconductor wafers."
-authors = ["cap1tan"]
-readme = "README.md"
-license = "MIT"
-repository = "https://github.com/cap1tan/wafermap"
-keywords = ["semiconductor", "wafer", "layout", "plot", "grid"]
-include = [
-    "LICENSE",
+authors = [
+    {name = "Sotiris Thomas", email = "sothomas88@gmail.com"}
 ]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+dependencies = [
+]
+keywords = ["semiconductor", "wafer", "layout", "plot", "grid"]
+
+[project.urls]
+repository = "https://github.com/cap1tan/wafermap"
+"Bug Tracker" = "https://github.com/cap1tan/wafermap/issues"
 
 [tool.poetry.dependencies]
-python = ">=3.9, <4.0"
-folium = "^0.19.5"
-branca = ">=0.6.0"
-Pillow = "^11.1.0"
-numpy = ">=2.00.0"
-html2image = "^2.0.3"
+python = ">=3.9,<4.0"
 
 [tool.poetry.group.dev.dependencies]
 black = ">=23.3.0"
@@ -34,5 +34,5 @@ tox-poetry-installer = ">=0.10.2"
 twine = ">=4.0.2"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
