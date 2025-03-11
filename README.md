@@ -8,7 +8,6 @@
 [
 ![GitHub](https://img.shields.io/github/v/release/cap1tan/wafermap?include_prereleases)
 ![GitHub](https://img.shields.io/github/languages/code-size/cap1tan/wafermap)
-![pypi](https://img.shields.io/badge/linting-pylint-yellowgreen)
 ](https://github.com/cap1tan/wafermap)
 
 
