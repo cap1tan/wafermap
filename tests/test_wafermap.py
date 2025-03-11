@@ -15,7 +15,8 @@ class FunctionalTestsWafermap(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.output_dir = ".\\tests_output\\"
+        self.output_dir = ".\\tests\\tests_output\\"
+        self.input_dir = ".\\tests\\"
 
     def test_wafermap_coverage_and_size(self):
         wm = wafermap.WaferMap(
@@ -296,36 +297,72 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=270,
         )
+        # cell coordinates
         wm.add_image(
-            image_source_file="INS3300_Lot_1_Wafer_17_147375.jpg",
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_17_147375.jpg"
+            ),
             cell=(0, 0),
             offset=(0.0, 0.0),
         )
         wm.add_image(
-            image_source_file="INS3300_Lot_1_Wafer_2_125416.jpg",
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_2_125416.jpg"
+            ),
             cell=(1, 0),
             offset=(2.0, 2.0),
         )
         wm.add_image(
-            image_source_file="INS3300_Lot_1_Wafer_17_147378.jpg",
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_17_147378.jpg"
+            ),
             cell=(3, 0),
             offset=(0.5, 0.5),
             marker_style={},
         )
         wm.add_image(
-            image_source_file="INS3300_Lot_1_Wafer_2_125416.jpg",
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_2_125416.jpg"
+            ),
             cell=(0, -2),
             offset=(12.0, 5.0),
         )
         wm.add_image(
-            image_source_file="INS3300_Lot_1_Wafer_17_147378.jpg",
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_17_147378.jpg"
+            ),
             cell=(0, -2),
             offset=(28.0, 3),
         )
         wm.add_image(
-            image_source_file="INS3300_Lot_1_Wafer_2_125416.jpg",
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_2_125416.jpg"
+            ),
             cell=(0, 1),
             offset=(0.0, 0.0),
+            marker_style={},
+        )
+        # wafer coordinates
+        wm.add_image(
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_17_147375.jpg"
+            ),
+            cell=None,
+            offset=(10.0, 100.0),
+        )
+        wm.add_image(
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_2_125416.jpg"
+            ),
+            cell=None,
+            offset=(-5, 78.6),
+        )
+        wm.add_image(
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_17_147378.jpg"
+            ),
+            cell=None,
+            offset=(-121.2, -24.9),
             marker_style={},
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_image1.html"))
@@ -340,33 +377,45 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.add_image(
-            image_source_file="INS3300_Lot_1_Wafer_17_147375.jpg",
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_17_147375.jpg"
+            ),
             cell=(0, 0),
             offset=(0.0, 0.0),
         )
         wm.add_image(
-            image_source_file="INS3300_Lot_1_Wafer_2_125416.jpg",
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_2_125416.jpg"
+            ),
             cell=(1, 0),
             offset=(2.0, 2.0),
         )
         wm.add_image(
-            image_source_file="INS3300_Lot_1_Wafer_17_147378.jpg",
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_17_147378.jpg"
+            ),
             cell=(3, 0),
             offset=(0.5, 0.5),
             marker_style={},
         )
         wm.add_image(
-            image_source_file="INS3300_Lot_1_Wafer_2_125416.jpg",
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_2_125416.jpg"
+            ),
             cell=(0, -2),
             offset=(5, 12),
         )
         wm.add_image(
-            image_source_file="INS3300_Lot_1_Wafer_17_147378.jpg",
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_17_147378.jpg"
+            ),
             cell=(0, -2),
             offset=(3, 28),
         )
         wm.add_image(
-            image_source_file="INS3300_Lot_1_Wafer_2_125416.jpg",
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_2_125416.jpg"
+            ),
             cell=(0, 1),
             offset=(0.0, 0.0),
             marker_style={},
@@ -389,18 +438,19 @@ class FunctionalTestsWafermap(unittest.TestCase):
             ((3, 0), [(1, 0), (-5, 5)]),
             ((3, 0), [(0, 1), (10, -10)]),
             ((3, 0), [(1, 1), (-20, -20)]),
+            (None, [(0, 0), (100, 75)]),  # wafer coordinates
+            (None, [(-12.3, -62.33), (5, 21.0)]),  # wafer coordinates
+            (None, [(-10, 0), (-12, 3.2)]),  # wafer coordinates
+            (None, [(-151, 0), (-152, 3.2)]),  # wafer coordinates
         ]
-        colors = ["green", "red", "blue", "black"]
-        for color, (_, vector) in zip(colors, vectors):
-            wm.add_vector(
-                vector_points=vector, cell=None, vector_style={"color": color}
-            )
-        for color, (cell, vector) in zip(colors, vectors):
+        colors = ["green", "red", "blue", "black", "purple", "orange", "brown", "grey"]
+        for cell, vector in vectors:
+            random_color = rnd.choice(colors)
             wm.add_vector(
                 vector_points=vector,
                 cell=cell,
-                vector_style={"color": color},
-                root_style={"radius": 1, "color": color},
+                vector_style={"color": random_color},
+                root_style={"radius": 1, "color": random_color},
             )
 
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_vectors1.html"))
@@ -434,6 +484,37 @@ class FunctionalTestsWafermap(unittest.TestCase):
             )
 
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_vectors2.html"))
+
+    def test_wafermap_add_vectors3(self):
+        wafer_radius = 100
+        n_vectors = 1000
+        wm = wafermap.WaferMap(
+            wafer_radius=100,
+            cell_size=(26, 14),
+            cell_margin=(0.0, 0.0),
+            grid_offset=(0, 0),
+            coverage="full",
+            notch_orientation=270,
+        )
+
+        vectors = [
+            (
+                None,
+                [
+                    (rnd.gauss(0, wafer_radius / 10), rnd.gauss(0, wafer_radius / 10)),
+                    (rnd.gauss(0, wafer_radius / 2), rnd.gauss(0, wafer_radius / 2)),
+                ],
+            )
+            for _ in range(n_vectors)
+        ]
+        for cell, vector in vectors:
+            wm.add_vector(
+                vector_points=vector,
+                cell=cell,
+                root_style={"radius": 1, "color": "black"},
+            )
+
+        wm.save_html(os.path.join(self.output_dir, "test_wafermap_vectors3.html"))
 
     def test_wafermap_add_points1(self):
         cell_size = (26, 14)
@@ -571,7 +652,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
 
         # add an image
         wm.add_image(
-            image_source_file="INS3300_Lot_1_Wafer_17_147378.jpg",
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_17_147378.jpg"
+            ),
             cell=(0, 1),
             offset=(2.0, 5.0),
         )  # relative coordinate of the image within the cell
