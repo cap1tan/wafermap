@@ -120,7 +120,7 @@ import random as rnd
 cell_size = (10, 20)
 cell_points = [(cell, [(rnd.gauss(cell_size[0] / 2, cell_size[0] / 6),
                         rnd.gauss(cell_size[1] / 2, cell_size[1] / 6)) for _ in
-                       range(50)]) for cell in wm.cell_map.keys()]
+                       range(50)]) for cell in wm]
 for cell, cell_points_ in cell_points:
     for cell_point in cell_points_:
         wm.add_point(cell=cell, offset=cell_point)

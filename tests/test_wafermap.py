@@ -18,6 +18,84 @@ class FunctionalTestsWafermap(unittest.TestCase):
         self.output_dir = ".\\tests\\tests_output\\"
         self.input_dir = ".\\tests\\"
 
+    def test_wafermap_invalid(self):
+
+        raised = False
+        try:
+            wm = wafermap.WaferMap(
+                wafer_radius=-100,
+                cell_size=(13.702, 24.846),
+                cell_margin=(0.0, 0.0),
+                grid_offset=(-2.05, -4.1),
+                edge_exclusion=2.2,
+                coverage="full",
+                notch_orientation=270,
+            )
+        except ValueError:
+            raised = True
+        if not raised:
+            raise ValueError("Test failed")
+
+        try:
+            wm = wafermap.WaferMap(
+                wafer_radius=100,
+                cell_size=(0, 24.846),
+                cell_margin=(0.0, 0.0),
+                grid_offset=(-2.05, -4.1),
+                edge_exclusion=2.2,
+                coverage="full",
+                notch_orientation=180,
+            )
+        except ValueError:
+            raised = True
+        if not raised:
+            raise ValueError("Test failed")
+
+        try:
+            wm = wafermap.WaferMap(
+                wafer_radius=100,
+                cell_size=(13.702, 24.846),
+                cell_margin=(0.0, -1),
+                grid_offset=(-2.05, -4.1),
+                edge_exclusion=2.2,
+                coverage="full",
+                notch_orientation=67,
+            )
+        except ValueError:
+            raised = True
+        if not raised:
+            raise ValueError("Test failed")
+
+        try:
+            wm = wafermap.WaferMap(
+                wafer_radius=100,
+                cell_size=(13.702, 24.846),
+                cell_margin=(0.0, 0.0),
+                grid_offset=(-2.05, -4.1),
+                edge_exclusion=-0.1,
+                coverage="full",
+                notch_orientation=67,
+            )
+        except ValueError:
+            raised = True
+        if not raised:
+            raise ValueError("Test failed")
+
+        try:
+            wm = wafermap.WaferMap(
+                wafer_radius=100,
+                cell_size=(13.702, 24.846),
+                cell_margin=(0.0, 0.0),
+                grid_offset=(-2.05, -4.1),
+                edge_exclusion=1,
+                coverage="test",
+                notch_orientation=67,
+            )
+        except ValueError:
+            raised = True
+        if not raised:
+            raise ValueError("Test failed")
+
     def test_wafermap_coverage_and_size(self):
         wm = wafermap.WaferMap(
             wafer_radius=100,
@@ -474,7 +552,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
                     (rnd.uniform(0, cell_size[0]), rnd.uniform(0, cell_size[1])),
                 ],
             )
-            for cell in wm.cell_map
+            for cell in wm
         ]
         for cell, vector in vectors:
             wm.add_vector(
@@ -558,7 +636,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
                     for _ in range(50)
                 ],
             )
-            for cell in wm.cell_map
+            for cell in wm
         ]
         for cell, cell_points_ in cell_points:
             for cell_point in cell_points_:
@@ -577,7 +655,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
 
-        for cell in wm.cell_map:
+        for cell in wm:
             if sum(cell) % 2 == 0:
                 wm.add_label(
                     cell=cell,
@@ -623,7 +701,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             "Purple",
             "Salmon",
         ]
-        for cell in wm.cell_map:
+        for cell in wm:
             random_cell_style = {
                 "fill": rnd.random() > 0.5,
                 "fillColor": named_html_colors[
@@ -687,7 +765,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
                     for _ in range(50)
                 ],
             )
-            for cell in wm.cell_map
+            for cell in wm
         ]
         for cell, cell_points_ in cell_points:
             for i, cell_point in enumerate(cell_points_):
@@ -715,8 +793,8 @@ class FunctionalTestsWafermap(unittest.TestCase):
             "Purple",
             "Salmon",
         ]
-        for i, cell_idx in enumerate(wm.cell_map):
-            if i > rnd.randint(0, len(wm.cell_map)) / 1.5:
+        for i, cell_idx in enumerate(wm):
+            if i > rnd.randint(0, len(wm)) / 1.5:
                 # randomly print a random label
                 picked_fg_color = named_html_colors[
                     rnd.randint(0, len(named_html_colors) - 1)
