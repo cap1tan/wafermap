@@ -4,7 +4,7 @@ import base64
 import math
 import os
 from io import BytesIO
-from typing import Union
+from typing import Union, Generator
 
 import branca
 import folium
@@ -30,21 +30,28 @@ class WaferMapGrid:
     ):
         """
         The WaferMap base class. Represents a circular wafer layout, with a grid, an edge exclusion and cells.
-        :param wafer_radius: Wafer diameter in mm
+        :param wafer_radius: Wafer radius in mm
         :param cell_size: Cell size in mm, (x, y)
         :param cell_margin: Distance between cells in mm, (x, y)
-        :param cell_origin: The cell index that is the origin (0, 0) of the map, (x, y).
+        :param cell_origin: The cell (x, y), that is the origin of the map (position (0, 0) on the map). (0, 0) is by convention the center of the map.
         :param grid_offset: Grid offset in mm, (x, y)
-        :param edge_exclusion: Margin from the wafer edge where a red edge exclusion
-        ring is drawn in mm.
-        :param coverage: Options of 'full', 'inner'. Option 'full' will cover wafer with
-         cells, partial cells allowed, 'inner' will only allow full cells
+        :param edge_exclusion: Margin from the wafer edge where no cells are allowed.
+        :param coverage: Options of 'full', 'inner'. Option 'full' will cover the whole wafer with cells, so partial cells are allowed. Option 'inner' only allows full cells to be included
         :param conversion_factor: Factor to multiply input dimensions with.
         """
 
-        assert cell_size[0] > 0
-        assert cell_size[1] > 0
-        assert coverage.lower() in ["full", "inner"]
+        # input validation
+        if any([wafer_radius <= 0,
+                len(cell_size) != 2,
+                len(cell_margin) != 2,
+                len(cell_origin) != 2,
+                len(grid_offset) != 2,
+                edge_exclusion < 0,
+                any([cell_size[0] <= 0, cell_size[1] <= 0]),
+                any([cell_margin[0] < 0, cell_margin[1] < 0]),
+                coverage.lower() not in ["inner", "full"]
+                ]):
+            raise ValueError("Invalid input")
 
         self.coverage = coverage.lower()
         self.cell_size_x = conversion_factor * cell_size[0]
@@ -140,11 +147,36 @@ class WaferMapGrid:
                 ):
                     self._cell_map[cell_label] = bounds + (center,)  # in (y,x)
 
+        self.current_cell_idx = 0
+
+    def __getitem__(self, item):
+        # Internal attribute _cell_map uses (y,x) convention while we interface with (x,y). Therefore, we provide
+        # cell_map as a property to interface with outside the class, which fully converts _cell_map from (y,x) to (x,y)
+        y, x = item
+        return self._cell_map[(y, x)]
+
+    def __next__(self):
+        try:
+            cell_ = list(self._cell_map.keys())[self.current_cell_idx]
+            # Internal attribute _cell_map uses (y,x) convention while we interface with (x,y). Therefore, we transform cell
+            # from (y, x) to (x, y)
+            cell = (cell_[1], cell_[0])
+        except IndexError:
+            raise StopIteration()
+        self.current_cell_idx += 1
+        return cell
+
+    def __iter__(self):
+        self.current_cell_idx = 0
+        return self
+
+    def __len__(self):
+        return len(self._cell_map)
+
     @property
     def cell_map(self):
-        # Internal attribute _cell_map uses (y,x) convention while WaferMap interfaces
-        # with (x,y). Therefore, we provide cell_map as a property to interface with
-        # outside the class, which fully converts _cell_map from (y,x) to (x,y)
+        # Internal attribute _cell_map uses (y,x) convention while we interface with (x,y). Therefore, we provide
+        # cell_map as a property to interface with outside the class, which fully converts _cell_map from (y,x) to (x,y)
         cell_map = {}
         for _cell_idx, _cell in self._cell_map.items():
             cell_idx = _cell_idx[1], _cell_idx[0]
@@ -229,8 +261,11 @@ class WaferMap(WaferMapGrid):
         :param conversion_factor: Factor to multiply input dimensions with.
         """
 
-        assert len(wafer_edge_color) == 3
-        assert all([x >= 0 for x in wafer_edge_color])
+        # input validation
+        if any([len(wafer_edge_color) != 3,
+                any([x < 0 for x in wafer_edge_color]),
+                ]):
+            raise ValueError("Invalid input")
 
         super().__init__(
             wafer_radius,
@@ -243,7 +278,6 @@ class WaferMap(WaferMapGrid):
             conversion_factor,
         )
 
-        self.edge_exclusion = conversion_factor * edge_exclusion
         self.notch_orientation = notch_orientation
         if map_bg_color is None:
             map_bg_color = utils.to255(*utils.invert(*wafer_edge_color))
@@ -315,7 +349,7 @@ class WaferMap(WaferMapGrid):
         ).add_to(folium_map)
 
         # Add wafer edge exclusion
-        if self.edge_exclusion > 0:
+        if self.edge_exclusion and self.edge_exclusion > 0:
             folium.Circle(
                 radius=self.wafer_radius - self.edge_exclusion,
                 location=(0.0, 0.0),
