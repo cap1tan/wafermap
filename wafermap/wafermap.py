@@ -41,7 +41,9 @@ class WaferMapGrid:
         """
 
         # input validation
-        if any([wafer_radius <= 0,
+        if any(
+            [
+                wafer_radius <= 0,
                 len(cell_size) != 2,
                 len(cell_margin) != 2,
                 len(cell_origin) != 2,
@@ -49,8 +51,9 @@ class WaferMapGrid:
                 edge_exclusion < 0,
                 any([cell_size[0] <= 0, cell_size[1] <= 0]),
                 any([cell_margin[0] < 0, cell_margin[1] < 0]),
-                coverage.lower() not in ["inner", "full"]
-                ]):
+                coverage.lower() not in ["inner", "full"],
+            ]
+        ):
             raise ValueError("Invalid input")
 
         self.coverage = coverage.lower()
@@ -262,9 +265,12 @@ class WaferMap(WaferMapGrid):
         """
 
         # input validation
-        if any([len(wafer_edge_color) != 3,
+        if any(
+            [
+                len(wafer_edge_color) != 3,
                 any([x < 0 for x in wafer_edge_color]),
-                ]):
+            ]
+        ):
             raise ValueError("Invalid input")
 
         super().__init__(
