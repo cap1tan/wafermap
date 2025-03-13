@@ -343,10 +343,18 @@ class WaferMap(WaferMapGrid):
         folium.Polygon(
             locations=utils.rotate(
                 [
-                    (0.0, self.wafer_radius - WaferMap.NOTCH_HEIGHT * self.conversion_factor),
+                    (
+                        0.0,
+                        self.wafer_radius
+                        - WaferMap.NOTCH_HEIGHT * self.conversion_factor,
+                    ),
                     (WaferMap.NOTCH_WIDTH * self.conversion_factor, self.wafer_radius),
                     (-WaferMap.NOTCH_WIDTH * self.conversion_factor, self.wafer_radius),
-                    (0.0, self.wafer_radius - WaferMap.NOTCH_HEIGHT * self.conversion_factor),
+                    (
+                        0.0,
+                        self.wafer_radius
+                        - WaferMap.NOTCH_HEIGHT * self.conversion_factor,
+                    ),
                 ],
                 (0, 0),
                 angle=self.notch_orientation,
@@ -432,7 +440,9 @@ class WaferMap(WaferMapGrid):
         self._labels_layer.show = False
         self._cell_labels_layer.show = False
 
-    def save_html(self, output_file: Union[str, None] = "wafermap.html") -> Union[str, None]:
+    def save_html(
+        self, output_file: Union[str, None] = "wafermap.html"
+    ) -> Union[str, None]:
         """Save current Folium Map to HTML with the given filename. If output_file is None, then return the html as string"""
         if output_file:
             if os.path.splitext(output_file)[1].lower() != ".html":
@@ -446,7 +456,9 @@ class WaferMap(WaferMapGrid):
             self.map.save(output_file)
             return output_file
 
-    def save_png(self, output_file: str = "wafermap.png", autocrop: bool = False) -> Union[str, None]:
+    def save_png(
+        self, output_file: str = "wafermap.png", autocrop: bool = False
+    ) -> Union[str, None]:
         """Save current Folium Map to a PNG image. html2image is required. autocrop will crop the white parts of the screenshot"""
         # turn on/off relevant layers/controls
         self.map.options["zoomControl"] = False
@@ -616,7 +628,10 @@ class WaferMap(WaferMapGrid):
         if cell:
             cell = cell[1], cell[0]
         for i, vector_point in enumerate(vector_points):
-            vector_points[i] = vector_point[1] * self.conversion_factor, vector_point[0] * self.conversion_factor
+            vector_points[i] = (
+                vector_point[1] * self.conversion_factor,
+                vector_point[0] * self.conversion_factor,
+            )
 
         # convert vector_points to wafer coordinates
         vector_starting_point = self.cell_to_wafer_coordinates(cell, vector_points[0])
