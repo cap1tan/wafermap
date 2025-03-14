@@ -143,22 +143,6 @@ class FunctionalTestsWafermap(unittest.TestCase):
 
         wm = wafermap.WaferMap(
             wafer_radius=150,
-            cell_size=(23.24, 31.4),
-            cell_margin=(0.0, 0.0),
-            grid_offset=(9.854, 2.512),
-            edge_exclusion=0.0,
-            coverage="inner",
-            notch_orientation=270,
-            conversion_factor=1,
-        )
-        wm.save_html(
-            os.path.join(
-                self.output_dir, "test_wafermap_inner_150_with_conversion.html"
-            )
-        )
-
-        wm = wafermap.WaferMap(
-            wafer_radius=150,
             cell_size=(25.87, 15.31),
             cell_margin=(0.0, 0.0),
             grid_offset=(0.0, 0.0),
@@ -168,6 +152,22 @@ class FunctionalTestsWafermap(unittest.TestCase):
             conversion_factor=1,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_150_sipp27.html"))
+
+    def test_wafermap_conversion_factor(self):
+
+        wm = wafermap.WaferMap(
+            wafer_radius=150,
+            cell_size=(23.24, 31.4),
+            cell_margin=(0.0, 0.0),
+            grid_offset=(9.854, 2.512),
+            edge_exclusion=0.0,
+            coverage="inner",
+            notch_orientation=270,
+            conversion_factor=1e-2,
+        )
+        wm.save_html(
+            os.path.join(self.output_dir, "test_wafermap_conversion_1e-2.html")
+        )
 
     def test_wafermap_notch(self):
         wm = wafermap.WaferMap(
@@ -323,7 +323,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="full",
             notch_orientation=270,
             wafer_edge_color=(0, 0, 0),
-            map_bg_color=(0.0, 0.9, 1.0),
+            map_bg_color=(0.3, 0.9, 1.0),
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_color2.html"))
 

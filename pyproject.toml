@@ -1,6 +1,6 @@
 [project]
 name = "wafermap"
-version = "0.2.7"
+version = "0.2.8"
 description = "A python package to plot maps of semiconductor wafers."
 authors = [
     {name = "Sotiris Thomas", email = "sothomas88@gmail.com"}
