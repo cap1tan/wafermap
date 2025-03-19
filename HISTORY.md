@@ -22,3 +22,12 @@
     ...
     wm[x]
     ```
+
+## 0.2.9
+
+* Added heatmap functionality:
+
+    ```python
+    data = (np.random.normal(size=(100, 3)) * np.array([[30, 30, 1]])).tolist()
+    wm.add_heatmap(data)
+    ```

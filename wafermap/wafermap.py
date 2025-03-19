@@ -153,11 +153,15 @@ class WaferMapGrid:
 
         self.current_cell_idx = 0
 
-    def __getitem__(self, item):
-        # Internal attribute _cell_map uses (y,x) convention while we interface with (x,y). Therefore, we provide
-        # cell_map as a property to interface with outside the class, which fully converts _cell_map from (y,x) to (x,y)
-        y, x = item
-        return self._cell_map[(y, x)]
+    def __contains__(self, cell):
+        # Internal attribute _cell_map uses (y,x) convention while we interface with (x,y).
+        _cell = (cell[1], cell[0])
+        return _cell in self._cell_map
+
+    def __getitem__(self, cell):
+        # Internal attribute _cell_map uses (y,x) convention while we interface with (x,y).
+        _cell = (cell[1], cell[0])
+        return self._cell_map[_cell]
 
     def __next__(self):
         try:
@@ -202,9 +206,9 @@ class WaferMapGrid:
         Convert cell coordinates to wafer coordinates
         """
         if cell:
-            if cell in self._cell_map:
+            if cell in self:
                 # offset is cell coordinates
-                origin = self._cell_map[cell][0]
+                origin = self[cell][0]
                 wafer_coords = (
                     offset[0] + origin[0],
                     offset[1] + origin[1],
@@ -330,6 +334,7 @@ class WaferMap(WaferMapGrid):
         self._images_layer = folium.map.FeatureGroup(name="images")
         self._markers_layer = folium.map.FeatureGroup(name="markers")
         self._vectors_layer = folium.map.FeatureGroup(name="vectors")
+        self._data_layer = folium.map.FeatureGroup(name="data")
 
         # Add wafer edge
         folium.Circle(
@@ -415,6 +420,7 @@ class WaferMap(WaferMapGrid):
         self._images_layer.add_to(folium_map)
         self._markers_layer.add_to(folium_map)
         self._vectors_layer.add_to(folium_map)
+        self._data_layer.add_to(folium_map)
         # add extra controls
         plugins.MousePosition(
             position="topright",
@@ -439,6 +445,7 @@ class WaferMap(WaferMapGrid):
         # default shows
         self._labels_layer.show = False
         self._cell_labels_layer.show = False
+        self._data_layer.show = True
 
     def save_html(
         self, output_file: Union[str, None] = "wafermap.html"
@@ -766,3 +773,47 @@ class WaferMap(WaferMapGrid):
 
         for cell_to_style in cells_to_style:
             self._cell_map[cell_to_style][5].options |= cell_style
+
+    def add_heatmap(
+        self,
+        data: Union[
+            list[tuple[float, float, float]], dict[tuple[int, int, float, float], float]
+        ],
+    ):
+        """
+        :param data: A list with [(<wafer_x>, <wafer_y>, <heatmap_value>)] or a dict with {(<cell_x>, <cell_y>, <cell_offset_x>, <cell_offset_y>): <heatmap_value>}.
+        """
+
+        if isinstance(data, dict):
+            data_ = []
+            for (
+                cell_x,
+                cell_y,
+                cell_offset_x,
+                cell_offset_y,
+            ), heatmap_value in data.items():
+                if cell_x is None or cell_y is None:
+                    wafer_x = cell_offset_x * self.conversion_factor
+                    wafer_y = cell_offset_y * self.conversion_factor
+                else:
+                    wafer_x, wafer_y = self.cell_to_wafer_coordinates(
+                        (cell_x, cell_y),
+                        (
+                            cell_offset_x * self.conversion_factor,
+                            cell_offset_y * self.conversion_factor,
+                        ),
+                    )
+                data_.append((wafer_y, wafer_x, heatmap_value))
+        else:
+            data_ = [
+                (
+                    wafer_x * self.conversion_factor,
+                    wafer_y * self.conversion_factor,
+                    heatmap_value,
+                )
+                for wafer_x, wafer_y, heatmap_value in data
+            ]
+
+        plugins.HeatMap(
+            data=data_,
+        ).add_to(self._data_layer)

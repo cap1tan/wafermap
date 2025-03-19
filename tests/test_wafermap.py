@@ -7,6 +7,8 @@ import os.path
 import random as rnd
 import unittest
 
+import numpy as np
+
 from wafermap import utils, wafermap
 
 
@@ -712,6 +714,60 @@ class FunctionalTestsWafermap(unittest.TestCase):
             wm.style_cell(cell=cell, cell_style=random_cell_style)
 
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_style_cells1.html"))
+
+    def test_wafermap_heatmap1(self):
+
+        cell_size = (26, 14)
+        N_cell = 100
+        wm = wafermap.WaferMap(
+            wafer_radius=100,
+            cell_size=cell_size,
+            cell_margin=(0.0, 0.0),
+            grid_offset=(0, 0),
+            coverage="full",
+            notch_orientation=270,
+        )
+
+        data = {}
+        for cell_x, cell_y in wm:
+            n = rnd.randint(0, N_cell)
+            for _ in range(n):
+                data[
+                    (
+                        cell_x,
+                        cell_y,
+                        rnd.gauss(cell_size[0] / 2, cell_size[0] / 4),
+                        rnd.gauss(cell_size[1] / 2, cell_size[1] / 4),
+                    )
+                ] = rnd.gauss()
+
+        wm.add_heatmap(data)
+
+        wm.save_html(os.path.join(self.output_dir, "test_wafermap_heatmap1.html"))
+
+    def test_wafermap_heatmap2(self):
+
+        wafer_radius = 100
+        N = 1000
+        wm = wafermap.WaferMap(
+            wafer_radius=wafer_radius,
+            cell_size=(26, 14),
+            cell_margin=(0.0, 0.0),
+            grid_offset=(0, 0),
+            coverage="full",
+            notch_orientation=270,
+            conversion_factor=1e-2,
+        )
+
+        data = (
+            np.random.normal(size=(N, 3))
+            * np.array([[wafer_radius / 4, wafer_radius / 4, 1]])
+            + np.array([[0, 0, 0]])
+        ).tolist()
+
+        wm.add_heatmap(data)
+
+        wm.save_html(os.path.join(self.output_dir, "test_wafermap_heatmap2.html"))
 
     def test_wafermap_example1(self):
         # define the wafermap
