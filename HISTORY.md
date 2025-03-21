@@ -31,3 +31,6 @@
     data = (np.random.normal(size=(100, 3)) * np.array([[30, 30, 1]])).tolist()
     wm.add_heatmap(data)
     ```
+
+* Bug fixes (edge exclusion now properly excludes cells, margin is respecting wafer boundaries etc.)
+* Small performance improvements

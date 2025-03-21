@@ -4,7 +4,7 @@ import base64
 import math
 import os
 from io import BytesIO
-from typing import Union, Generator
+from typing import Union
 
 import branca
 import folium
@@ -16,6 +16,7 @@ from wafermap import utils
 
 
 class WaferMapGrid:
+    """The WaferMapGrid class. Represents a circular wafer layout, with a grid, an edge exclusion and cells. All the class inputs are in (x, y) format, as in (column coordinate, row coordinate)"""
 
     def __init__(
         self,
@@ -68,8 +69,16 @@ class WaferMapGrid:
         self.edge_exclusion = self.conversion_factor * edge_exclusion
         self.grid_offset_x = self.conversion_factor * grid_offset[0]
         self.grid_offset_y = self.conversion_factor * grid_offset[1]
-        self._num_of_cells_x = math.ceil(2 * self.wafer_radius / self.cell_size_x)
-        self._num_of_cells_y = math.ceil(2 * self.wafer_radius / self.cell_size_y)
+        self._num_of_cells_x = math.ceil(
+            2
+            * (self.wafer_radius - self.edge_exclusion)
+            / (self.cell_size_x + self.cell_margin_x)
+        )
+        self._num_of_cells_y = math.ceil(
+            2
+            * (self.wafer_radius - self.edge_exclusion)
+            / (self.cell_size_y + self.cell_margin_y)
+        )
 
         # init the _cell_map
         # the cell map is a dict that corresponds the pixel coordinates of the bounding
@@ -89,113 +98,84 @@ class WaferMapGrid:
         max_index_x = math.ceil(self._num_of_cells_x / 2) + 1
         min_index_y = -math.ceil(self._num_of_cells_y / 2) - 1
         max_index_y = math.ceil(self._num_of_cells_y / 2) + 1
+        step_x = self.cell_size_x + self.cell_margin_x
+        step_y = self.cell_size_y + self.cell_margin_y
         for i_x in range(min_index_x, max_index_x):
             for i_y in range(min_index_y, max_index_y):
-                cell_label = (i_y - self.cell_origin_y, i_x - self.cell_origin_x)
+                cell_label = (i_x - self.cell_origin_x, i_y - self.cell_origin_y)
                 # print a box
                 lower_bound = (
-                    (i_y - 0.5) * (self.cell_size_y + self.cell_margin_y)
-                    + self.grid_offset_y,
-                    (i_x - 0.5) * (self.cell_size_x + self.cell_margin_x)
-                    + self.grid_offset_x,
+                    (i_x - 0.5) * step_x + self.grid_offset_x,
+                    (i_y - 0.5) * step_y + self.grid_offset_y,
                 )
                 upper_bound = (
-                    (i_y + 0.5) * (self.cell_size_y + self.cell_margin_y)
-                    + self.grid_offset_y,
-                    (i_x + 0.5) * (self.cell_size_x + self.cell_margin_x)
-                    + self.grid_offset_x,
+                    (i_x + 0.5) * step_x + self.grid_offset_x,
+                    (i_y + 0.5) * step_y + self.grid_offset_y,
                 )
                 lower_left = (
-                    lower_bound[0] + self.cell_margin_y / 2,
-                    lower_bound[1] + self.cell_margin_x / 2,
+                    lower_bound[0] + self.cell_margin_x / 2,
+                    lower_bound[1] + self.cell_margin_y / 2,
                 )
                 lower_right = (
-                    lower_bound[0] + self.cell_margin_y / 2,
-                    lower_bound[1] + self.cell_size_x - self.cell_margin_x / 2,
+                    lower_bound[0] + self.cell_margin_x / 2 + self.cell_size_x,
+                    lower_bound[1] + self.cell_margin_y / 2,
                 )
                 upper_left = (
-                    upper_bound[0] - self.cell_margin_y / 2,
-                    upper_bound[1] - self.cell_size_x + self.cell_margin_x / 2,
+                    upper_bound[0] - self.cell_margin_x / 2 - self.cell_size_x,
+                    upper_bound[1] - self.cell_margin_y / 2,
                 )
                 upper_right = (
-                    upper_bound[0] - self.cell_margin_y / 2,
-                    upper_bound[1] - self.cell_margin_x / 2,
+                    upper_bound[0] - self.cell_margin_x / 2,
+                    upper_bound[1] - self.cell_margin_y / 2,
                 )
                 bounds = (lower_left, lower_right, upper_left, upper_right)
                 center = (
-                    (lower_left[0] + upper_left[0]) / 2,
-                    (lower_left[1] + lower_right[1]) / 2,
+                    (lower_left[0] + lower_right[0]) / 2,
+                    (lower_left[1] + upper_left[1]) / 2,
                 )
 
-                in_for_full = any(
-                    list(
-                        map(
-                            lambda points: utils.euclidean_distance(points)
-                            <= self.wafer_radius,
-                            bounds,
-                        )
+                are_cell_bounds_in_wafer = list(
+                    map(
+                        lambda points: utils.euclidean_distance(points)
+                        <= (self.wafer_radius - self.edge_exclusion),
+                        bounds,
                     )
                 )
-                in_for_inner = all(
-                    list(
-                        map(
-                            lambda points: utils.euclidean_distance(points)
-                            <= self.wafer_radius,
-                            bounds,
-                        )
-                    )
-                )
+
+                in_for_full = any(are_cell_bounds_in_wafer)
+                in_for_inner = all(are_cell_bounds_in_wafer)
 
                 if (self.coverage == "full" and in_for_full) or (
                     self.coverage == "inner" and in_for_inner
                 ):
-                    self._cell_map[cell_label] = bounds + (center,)  # in (y,x)
+                    self._cell_map[cell_label] = bounds + (center,)
 
         self.current_cell_idx = 0
 
-    def __contains__(self, cell):
-        # Internal attribute _cell_map uses (y,x) convention while we interface with (x,y).
-        _cell = (cell[1], cell[0])
-        return _cell in self._cell_map
+    def __contains__(self, cell: tuple[int, int]):
+        return cell in self._cell_map
 
-    def __getitem__(self, cell):
-        # Internal attribute _cell_map uses (y,x) convention while we interface with (x,y).
-        _cell = (cell[1], cell[0])
-        return self._cell_map[_cell]
+    def __getitem__(self, cell: tuple[int, int]):
+        return self._cell_map[cell]
 
     def __next__(self):
         try:
-            cell_ = list(self._cell_map.keys())[self.current_cell_idx]
-            # Internal attribute _cell_map uses (y,x) convention while we interface with (x,y). Therefore, we transform cell
-            # from (y, x) to (x, y)
-            cell = (cell_[1], cell_[0])
+            cell = list(self._cell_map.keys())[self.current_cell_idx]
         except IndexError:
             raise StopIteration()
         self.current_cell_idx += 1
         return cell
 
     def __iter__(self):
-        self.current_cell_idx = 0
-        return self
+        for i in range(len(self._cell_map)):
+            yield list(self._cell_map)[i]
 
     def __len__(self):
         return len(self._cell_map)
 
     @property
     def cell_map(self):
-        # Internal attribute _cell_map uses (y,x) convention while we interface with (x,y). Therefore, we provide
-        # cell_map as a property to interface with outside the class, which fully converts _cell_map from (y,x) to (x,y)
-        cell_map = {}
-        for _cell_idx, _cell in self._cell_map.items():
-            cell_idx = _cell_idx[1], _cell_idx[0]
-            cell = ()
-            for _cell_item in _cell:
-                if type(_cell_item) is tuple:
-                    cell += ((_cell_item[1], _cell_item[0]),)
-                else:
-                    cell += (_cell_item,)
-            cell_map[cell_idx] = cell
-        return cell_map
+        return self._cell_map
 
     def cell_to_wafer_coordinates(
         self,
@@ -203,12 +183,12 @@ class WaferMapGrid:
         offset: tuple[float, float] = (0.0, 0.0),
     ) -> tuple[float, float]:
         """
-        Convert cell coordinates to wafer coordinates
+        Convert cell coordinates to wafer coordinates in (x, y) format. cell and offset are in (x, y) format.
         """
         if cell:
             if cell in self:
                 # offset is cell coordinates
-                origin = self[cell][0]
+                origin = self[cell][0]  # lower left corner of cell in (x, y) format
                 wafer_coords = (
                     offset[0] + origin[0],
                     offset[1] + origin[1],
@@ -231,9 +211,7 @@ class WaferMap(WaferMapGrid):
     DEFAULT_VECTOR_STYLE = {"color": "#009900", "weight": 1}
     DEFAULT_POINT_STYLE = {"radius": 0.5, "fill": True}
     DEFAULT_LABEL_FONT_SIZE = 8
-    DEFAULT_LABEL_HTML_STYLE = (
-        f"font-size: {DEFAULT_LABEL_FONT_SIZE}pt; color: black; text-align: center;"
-    )
+    DEFAULT_LABEL_HTML_STYLE = f"font-size: {DEFAULT_LABEL_FONT_SIZE}pt; color: black; text-align: center; white-space: pre; word-wrap: break-word;"
     IMAGE_SIZE_IN_POPUP = (400, 400)
     MAP_PADDING = (50, 50)  # in pixels (x, y)
 
@@ -253,7 +231,7 @@ class WaferMap(WaferMapGrid):
     ):
         """
         Main WaferMap class. Represents a circular wafer layout, with a grid, an edge exclusion, cells and several types
-        of markers (points, vectors, images).It uses folium dynamic maps as a rendering backend.
+        of markers (points, vectors, images).It uses folium dynamic maps as a rendering backend. Whenever a variable has an underscore prefix, it is in (y, x) format.
         :param wafer_radius: Wafer diameter in mm
         :param cell_size: Cell size in mm, (x, y)
         :param cell_margin: Distance between cells in mm, (x, y)
@@ -379,17 +357,17 @@ class WaferMap(WaferMapGrid):
             ).add_to(self._edge_exclusion_layer)
 
         # Add grid
-        for cell_label, (
+        for cell, (
             lower_left,
             lower_right,
             upper_left,
             upper_right,
             center,
-        ) in self._cell_map.items():
+        ) in self.cell_map.items():
             # add the folium Rectangle to the _cell_map
-            self._cell_map[cell_label] += (
+            self._cell_map[cell] += (
                 folium.vector_layers.Rectangle(
-                    [lower_left, upper_right],
+                    [utils.swap(lower_left), utils.swap(upper_right)],
                     popup=None,
                     tooltip=None,
                     color="#142d2d",
@@ -397,19 +375,20 @@ class WaferMap(WaferMapGrid):
                     fill=False,
                 ),
             )
-            self._cell_map[cell_label][5].add_to(self._grid_layer)
+            self._cell_map[cell][-1].add_to(self._grid_layer)
 
             # print labels
+            cell_label_position = (
+                lower_left[0] + (0.5 * self.cell_size_x),
+                lower_left[1] + (0.5 * self.cell_size_y),
+            )
             folium.map.Marker(
-                [
-                    lower_left[0] + (0.5 * self.cell_size_y),
-                    lower_left[1] + (0.5 * self.cell_size_x),
-                ],
+                utils.swap(cell_label_position),
                 icon=folium.features.DivIcon(
                     icon_size=(50, 20),
                     icon_anchor=(25, 10),
                     html=f'<div style="font-size: 8pt; color: black;'
-                    f'text-align: center">{str(cell_label)}</div>',
+                    f'text-align: center">{str(cell)}</div>',
                 ),
             ).add_to(self._cell_labels_layer)
 
@@ -531,10 +510,8 @@ class WaferMap(WaferMapGrid):
         if not os.path.isfile(image_source_file):
             raise ValueError(f"Image file {image_source_file} does not exist.")
 
-        # given in (x,y) but internally we use (y,x) = (long, lat)
-        if cell:
-            cell = cell[1], cell[0]
-        offset = offset[1] * self.conversion_factor, offset[0] * self.conversion_factor
+        # find image_origin in wafer (x, y) coordinates
+        offset = offset[0] * self.conversion_factor, offset[1] * self.conversion_factor
         image_origin = self.cell_to_wafer_coordinates(cell, offset)
 
         # Open and read image
@@ -552,17 +529,21 @@ class WaferMap(WaferMapGrid):
             image_coordinates = (
                 image_origin[0] + offset[0],
                 image_origin[1] + offset[1],
-            )
+            )  # position within the cell
             image_bounds = [
-                (image_coordinates[0], image_coordinates[1]),
+                image_coordinates,
                 (
-                    image_coordinates[0] + image_height * 1 / 10,
+                    image_coordinates[0]
+                    + image_height * 1 / 10,  # reduce image size to 10%
                     image_coordinates[1] + image_width * 1 / 10,
                 ),
             ]
             cell_bounds = [
-                (image_coordinates[0], image_coordinates[1]),
-                (self._cell_map[cell][3][0], self._cell_map[cell][3][1]),
+                image_coordinates,
+                (
+                    self._cell_map[cell][3][0],
+                    self._cell_map[cell][3][1],
+                ),  # cell upper right corner
             ]
         else:
             # offset is wafer coordinates
@@ -571,9 +552,10 @@ class WaferMap(WaferMapGrid):
                 image_origin[1],
             )
             image_bounds = [
-                (image_coordinates[0], image_coordinates[1]),
+                image_coordinates,  # position within the wafer
                 (
-                    image_coordinates[0] + image_height * 1 / 10,
+                    image_coordinates[0]
+                    + image_height * 1 / 10,  # reduce image size to 10%
                     image_coordinates[1] + image_width * 1 / 10,
                 ),
             ]
@@ -631,13 +613,11 @@ class WaferMap(WaferMapGrid):
         if vector_style != WaferMap.DEFAULT_VECTOR_STYLE:
             vector_style = {**WaferMap.DEFAULT_VECTOR_STYLE, **vector_style}
 
-        # given in (x,y) but internally we use (y,x) = (long, lat)
-        if cell:
-            cell = cell[1], cell[0]
+        # apply conversion factor to vector_points
         for i, vector_point in enumerate(vector_points):
             vector_points[i] = (
-                vector_point[1] * self.conversion_factor,
                 vector_point[0] * self.conversion_factor,
+                vector_point[1] * self.conversion_factor,
             )
 
         # convert vector_points to wafer coordinates
@@ -658,13 +638,13 @@ class WaferMap(WaferMapGrid):
 
         if root_style:
             root_point = vector_points[0]
-            folium.CircleMarker(location=root_point, **root_style).add_to(
+            folium.CircleMarker(location=utils.swap(root_point), **root_style).add_to(
                 self._vectors_layer
             )
 
-        vector_line = folium.PolyLine(vector_points, **vector_style).add_to(
-            self._vectors_layer
-        )
+        vector_line = folium.PolyLine(
+            [utils.swap(v) for v in vector_points], **vector_style
+        ).add_to(self._vectors_layer)
         plugins.PolyLineTextPath(vector_line, "", repeat=False, offset=5).add_to(
             self._vectors_layer
         )
@@ -691,15 +671,13 @@ class WaferMap(WaferMapGrid):
         if point_style != WaferMap.DEFAULT_POINT_STYLE:
             point_style = {**WaferMap.DEFAULT_POINT_STYLE, **point_style}
 
-        # given in (x,y) but internally we use (y,x) = (long, lat)
-        if cell:
-            cell = cell[1], cell[0]
-        offset = offset[1] * self.conversion_factor, offset[0] * self.conversion_factor
+        # apply conversion factor to offset
+        offset = offset[0] * self.conversion_factor, offset[1] * self.conversion_factor
 
         point_origin = self.cell_to_wafer_coordinates(cell, offset)
 
         folium.CircleMarker(
-            location=point_origin, popup=popup_text, **point_style
+            location=utils.swap(point_origin), popup=popup_text, **point_style
         ).add_to(self._markers_layer)
 
     def add_label(
@@ -725,10 +703,8 @@ class WaferMap(WaferMapGrid):
         if label_html_style is None:
             label_html_style = WaferMap.DEFAULT_LABEL_HTML_STYLE
 
-        # given in (x,y) but internally we use (y,x) = (long, lat)
-        if cell:
-            cell = cell[1], cell[0]
-        offset = offset[1] * self.conversion_factor, offset[0] * self.conversion_factor
+        # apply conversion factor to offset
+        offset = offset[0] * self.conversion_factor, offset[1] * self.conversion_factor
 
         label_origin = self.cell_to_wafer_coordinates(cell, offset)
         # we multiply so that we have some scaling the label size with the
@@ -736,12 +712,19 @@ class WaferMap(WaferMapGrid):
         # 1pt is 1.333px
         label_size_px = (
             int(min(len(label_text) * WaferMap.DEFAULT_LABEL_FONT_SIZE * 1.333, 100)),
-            int(min(WaferMap.DEFAULT_LABEL_FONT_SIZE * 1.333, 100)),
+            int(
+                min(
+                    len(label_text.split("\n"))
+                    * WaferMap.DEFAULT_LABEL_FONT_SIZE
+                    * 1.333,
+                    100,
+                )
+            ),
         )
         # put the label anchor at the center of the label
         label_anchor_px = (int(label_size_px[0] / 2), int(label_size_px[1] / 2))
         folium.map.Marker(
-            location=label_origin,
+            location=utils.swap(label_origin),
             icon=folium.features.DivIcon(
                 icon_size=label_size_px,
                 icon_anchor=label_anchor_px,
@@ -760,19 +743,15 @@ class WaferMap(WaferMapGrid):
         :param cell: tuple of cell index (x,y). If None is passed, all cells are styled.
         """
 
-        # given in (x,y) but internally we use (y,x) = (long, lat)
-        if cell:
-            cell = cell[1], cell[0]
-
         if not cell:
-            cells_to_style = [c for c in self._cell_map]
+            cells_to_style = list(self)
         else:
-            if cell not in self._cell_map:
+            if cell not in self:
                 raise ValueError(f"{str(cell)} does not exist in wafermap.")
             cells_to_style = [cell]
 
         for cell_to_style in cells_to_style:
-            self._cell_map[cell_to_style][5].options |= cell_style
+            self[cell_to_style][5].options |= cell_style
 
     def add_heatmap(
         self,
@@ -785,7 +764,7 @@ class WaferMap(WaferMapGrid):
         """
 
         if isinstance(data, dict):
-            data_ = []
+            _data = []
             for (
                 cell_x,
                 cell_y,
@@ -803,17 +782,17 @@ class WaferMap(WaferMapGrid):
                             cell_offset_y * self.conversion_factor,
                         ),
                     )
-                data_.append((wafer_y, wafer_x, heatmap_value))
+                _data.append((wafer_y, wafer_x, heatmap_value))
         else:
-            data_ = [
+            _data = [
                 (
-                    wafer_x * self.conversion_factor,
                     wafer_y * self.conversion_factor,
+                    wafer_x * self.conversion_factor,
                     heatmap_value,
                 )
                 for wafer_x, wafer_y, heatmap_value in data
             ]
 
         plugins.HeatMap(
-            data=data_,
+            data=_data,
         ).add_to(self._data_layer)

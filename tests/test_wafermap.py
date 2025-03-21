@@ -98,6 +98,25 @@ class FunctionalTestsWafermap(unittest.TestCase):
         if not raised:
             raise ValueError("Test failed")
 
+    def test_wafermap_swap(self):
+
+        swap = utils.swap
+
+        test1 = (3, 4)
+        assert swap(test1) == (4, 3)
+        test2 = (3, 3)
+        assert swap(test2) == (3, 3)
+        test3 = [3, 4]
+        assert swap(test3) == [4, 3]
+        test5 = [(1, 2), (3, 4), (0, 0)]
+        assert swap(test5) == [(2, 1), (4, 3), (0, 0)]
+        test6 = ["ab", (1, 2), "c", 42, [1, 2, 3], (0, -1)]
+        assert swap(test6) == ["ab", (2, 1), "c", 42, [1, 2, 3], (-1, 0)]
+        test7 = ((1, 2), (3, 4), (5, 6), (7, 8), (9, 10), dict(a=1, b=2))
+        assert swap(test7) == ((2, 1), (4, 3), (6, 5), (8, 7), (10, 9), dict(a=1, b=2))
+        test8 = [(1, 2), (3, 4)]
+        assert swap(test8) == [(4, 3), (2, 1)]
+
     def test_wafermap_coverage_and_size(self):
         wm = wafermap.WaferMap(
             wafer_radius=100,
@@ -230,14 +249,36 @@ class FunctionalTestsWafermap(unittest.TestCase):
 
         wm = wafermap.WaferMap(
             wafer_radius=100,
-            cell_size=(50, 10),
+            cell_size=(2, 6),
             cell_margin=(0.0, 0.0),
-            grid_offset=(-2.05, -4.1),
-            edge_exclusion=2.2,
+            grid_offset=(40, 0),
+            edge_exclusion=0,
             coverage="full",
             notch_orientation=270,
         )
-        wm.save_html(os.path.join(self.output_dir, "test_wafermap_50_10.html"))
+        wm.save_html(os.path.join(self.output_dir, "test_wafermap_2_6.html"))
+
+        wm = wafermap.WaferMap(
+            wafer_radius=150,
+            cell_size=(25.96, 15.504),
+            cell_margin=(0.0, 0.0),
+            grid_offset=(0, 0),
+            edge_exclusion=0,
+            coverage="full",
+            notch_orientation=270,
+        )
+        wm.save_html(os.path.join(self.output_dir, "test_wafermap_26_15.5_ee0.html"))
+
+        wm = wafermap.WaferMap(
+            wafer_radius=150,
+            cell_size=(25.96, 15.504),
+            cell_margin=(0.0, 0.0),
+            grid_offset=(0, 0),
+            edge_exclusion=3,
+            coverage="full",
+            notch_orientation=270,
+        )
+        wm.save_html(os.path.join(self.output_dir, "test_wafermap_26_15.5_ee3.html"))
 
     def test_wafermap_cell_margin(self):
         wm = wafermap.WaferMap(
@@ -658,11 +699,17 @@ class FunctionalTestsWafermap(unittest.TestCase):
         )
 
         for cell in wm:
-            if sum(cell) % 2 == 0:
+            if sum(cell) % 3 == 0:
                 wm.add_label(
                     cell=cell,
                     offset=(cell_size[0] / 2, cell_size[1] / 2),
                     label_text=f"Label: {cell}",
+                )
+            elif sum(cell) % 3 == 1:
+                wm.add_label(
+                    cell=cell,
+                    offset=(cell_size[0] / 2, cell_size[1] / 2),
+                    label_text=f"Multiline\nlabel\ncell: {cell}",
                 )
             else:
                 wm.add_label(

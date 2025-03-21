@@ -13,12 +13,12 @@ def rgb_to_html(red: float, green: float, blue: float) -> str:
     return "#%02X%02X%02X" % (r, g, b)
 
 
-def invert(red: float, green: float, blue: float) -> (float, float, float):
+def invert(red: float, green: float, blue: float) -> tuple[float, float, float]:
     """returns RGB components of inverted color"""
     return 1.0 - red, 1.0 - green, 1.0 - blue
 
 
-def to255(red: float, green: float, blue: float) -> (int, int, int):
+def to255(red: float, green: float, blue: float) -> tuple[int, int, int]:
     """returns RGB color to 0-255 scale"""
     r = min(round(red * 255), 255)
     g = min(round(green * 255), 255)
@@ -29,7 +29,9 @@ def to255(red: float, green: float, blue: float) -> (int, int, int):
 # Utility functions
 
 
-def euclidean_distance(point: (float, float), origin: (float, float) = None) -> float:
+def euclidean_distance(
+    point: tuple[float, float], origin: tuple[float, float] = None
+) -> float:
     """Calculate euclidean distance from the origin"""
     if origin is None:
         return math.sqrt(sum((p**2 for p in point)))
@@ -38,8 +40,8 @@ def euclidean_distance(point: (float, float), origin: (float, float) = None) -> 
 
 
 def bounded_rectangle(
-    rect: [(float, float)], bounds: [(float, float)]
-) -> [(float, float)]:
+    rect: list[tuple[float, float]], bounds: list[tuple[float, float]]
+) -> list[tuple[float, float]]:
     """
     Resize rectangle given by points into a rectangle that fits within bounds,
     preserving the aspect ratio.
@@ -79,8 +81,8 @@ def bounded_rectangle(
 
 
 def rotate(
-    points: [(float, float)], anchor: (float, float), angle: float = 90.0
-) -> [(float, float)]:
+    points: list[tuple[float, float]], anchor: tuple[float, float], angle: float = 90.0
+) -> list[tuple[float, float]]:
     """Rotates points (nx2) about anchor (x, y) by angle in degrees"""
     points = numpy.array(points)
     anchor = numpy.array(anchor)
@@ -94,15 +96,26 @@ def rotate(
     )
 
 
-def cart2pol(x: float, y: float) -> (float, float):
+def cart2pol(x: float, y: float) -> tuple[float, float]:
     """Convert cartesian coordinates x, y into polar rho, phi"""
     rho = numpy.sqrt(x**2 + y**2)
     phi = numpy.arctan2(y, x)
     return rho, phi
 
 
-def pol2cart(rho: float, phi: float) -> (float, float):
+def pol2cart(rho: float, phi: float) -> tuple[float, float]:
     """Convert polar coordinates rho, phi into cartesian x, y"""
     x = rho * numpy.cos(phi)
     y = rho * numpy.sin(phi)
     return x, y
+
+
+def swap(x):
+    """Swaps iterables of size 2, except strings and dicts, from (x, y) to (y, x), recursively"""
+    if hasattr(x, "__iter__") and not (isinstance(x, str) or isinstance(x, dict)):
+        if len(x) == 2:
+            return type(x)((swap(x[1]), swap(x[0])))
+        else:
+            return type(x)(swap(x_i) for x_i in x)
+    else:
+        return x
