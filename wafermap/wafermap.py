@@ -23,6 +23,7 @@ class WaferMapGrid:
         wafer_radius: float,
         cell_size: tuple[float, float],
         cell_margin: tuple[float, float] = (0.0, 0.0),
+        cells: list[tuple[float, float, int, int]] = [],
         cell_origin: tuple[int, int] = (0, 0),
         grid_offset: tuple[float, float] = (0.0, 0.0),
         edge_exclusion: float = 3.0,
@@ -34,10 +35,11 @@ class WaferMapGrid:
         :param wafer_radius: Wafer radius in mm
         :param cell_size: Cell size in mm, (x, y)
         :param cell_margin: Distance between cells in mm, (x, y)
+        :param cells: Optionally pass in directly a list of cells [(wafer_x, wafer_y, cell_x, cell_y)] where (wafer_x, wafer_y) are the wafer coordinates of each cell origin (bottom left corner) and (cell_x, cell_y) are the cell coordinates. If this is passed in, the rest of the parameters are ignored.
         :param cell_origin: The cell (x, y), that is the origin of the map (position (0, 0) on the map). (0, 0) is by convention the center of the map.
         :param grid_offset: Grid offset in mm, (x, y)
         :param edge_exclusion: Margin from the wafer edge where no cells are allowed.
-        :param coverage: Options of 'full', 'inner'. Option 'full' will cover the whole wafer with cells, so partial cells are allowed. Option 'inner' only allows full cells to be included
+        :param coverage: Options of 'full', 'inner', 'none'. Option 'full' will cover the whole wafer with cells, so partial cells are allowed. Option 'inner' only allows full cells to be included. Option 'none' does not force any kind of bounds checking on the cells
         :param conversion_factor: Factor to multiply input dimensions with.
         """
 
@@ -52,34 +54,24 @@ class WaferMapGrid:
                 edge_exclusion < 0,
                 any([cell_size[0] <= 0, cell_size[1] <= 0]),
                 any([cell_margin[0] < 0, cell_margin[1] < 0]),
-                coverage.lower() not in ["inner", "full"],
+                coverage.strip().lower() not in ["inner", "full", "none"],
             ]
         ):
             raise ValueError("Invalid input")
 
         self.conversion_factor = conversion_factor
-        self.coverage = coverage.lower()
         self.cell_size_x = self.conversion_factor * cell_size[0]
         self.cell_size_y = self.conversion_factor * cell_size[1]
+        self.wafer_radius = self.conversion_factor * wafer_radius
+        self.edge_exclusion = self.conversion_factor * edge_exclusion
+        self.coverage = coverage.strip().lower()
         self.cell_margin_x = self.conversion_factor * cell_margin[0]
         self.cell_margin_y = self.conversion_factor * cell_margin[1]
         self.cell_origin_x = int(cell_origin[0])
         self.cell_origin_y = int(cell_origin[1])
-        self.wafer_radius = self.conversion_factor * wafer_radius
-        self.edge_exclusion = self.conversion_factor * edge_exclusion
         self.grid_offset_x = self.conversion_factor * grid_offset[0]
         self.grid_offset_y = self.conversion_factor * grid_offset[1]
-        self._num_of_cells_x = math.ceil(
-            2
-            * (self.wafer_radius - self.edge_exclusion)
-            / (self.cell_size_x + self.cell_margin_x)
-        )
-        self._num_of_cells_y = math.ceil(
-            2
-            * (self.wafer_radius - self.edge_exclusion)
-            / (self.cell_size_y + self.cell_margin_y)
-        )
-
+        
         # init the _cell_map
         # the cell map is a dict that corresponds the pixel coordinates of the bounding
         # box of each cell to the cell index:
@@ -92,63 +84,122 @@ class WaferMapGrid:
         # We consider the cell origin to be its lower left corner
         # y is latitude, x is longitude
         self._cell_map = {}
-
-        # Add grid
-        min_index_x = -math.ceil(self._num_of_cells_x / 2) - 1
-        max_index_x = math.ceil(self._num_of_cells_x / 2) + 1
-        min_index_y = -math.ceil(self._num_of_cells_y / 2) - 1
-        max_index_y = math.ceil(self._num_of_cells_y / 2) + 1
-        step_x = self.cell_size_x + self.cell_margin_x
-        step_y = self.cell_size_y + self.cell_margin_y
-        for i_x in range(min_index_x, max_index_x):
-            for i_y in range(min_index_y, max_index_y):
-                cell_label = (i_x - self.cell_origin_x, i_y - self.cell_origin_y)
+        
+        if cells:
+            # define wafermap based on a list of cells instead of grid parameters
+            if len(cells[0]) != 4:
+                raise ValueError("Invalid input. Expected each cell to be a tuple of (wafer_x, wafer_y cell_x, cell_y)")
+            if len(cells) > 1 and ((abs(cells[1][0] - cells[0][0]) != 0 and abs(cells[1][0] - cells[0][0]) < (cell_size[0] + cell_margin[0])) or 
+                                   (abs(cells[1][1] - cells[0][1]) != 0 and abs(cells[1][1] - cells[0][1]) < (cell_size[1] + cell_margin[1]))):
+                raise ValueError("Invalid input. Grid cell size is inconsistent with input cell_size.")
+            
+            for (wafer_x, wafer_y, cell_x, cell_y) in cells:
+                wafer_x, wafer_y = wafer_x * self.conversion_factor, wafer_y * self.conversion_factor
+                cell_label = (cell_x, cell_y)
                 # print a box
-                lower_bound = (
-                    (i_x - 0.5) * step_x + self.grid_offset_x,
-                    (i_y - 0.5) * step_y + self.grid_offset_y,
-                )
-                upper_bound = (
-                    (i_x + 0.5) * step_x + self.grid_offset_x,
-                    (i_y + 0.5) * step_y + self.grid_offset_y,
-                )
-                lower_left = (
-                    lower_bound[0] + self.cell_margin_x / 2,
-                    lower_bound[1] + self.cell_margin_y / 2,
-                )
-                lower_right = (
-                    lower_bound[0] + self.cell_margin_x / 2 + self.cell_size_x,
-                    lower_bound[1] + self.cell_margin_y / 2,
-                )
-                upper_left = (
-                    upper_bound[0] - self.cell_margin_x / 2 - self.cell_size_x,
-                    upper_bound[1] - self.cell_margin_y / 2,
-                )
-                upper_right = (
-                    upper_bound[0] - self.cell_margin_x / 2,
-                    upper_bound[1] - self.cell_margin_y / 2,
-                )
-                bounds = (lower_left, lower_right, upper_left, upper_right)
+                lower_left = (wafer_x, wafer_y)
+                lower_right = (wafer_x + self.cell_size_x, wafer_y)
+                upper_left = (wafer_x, wafer_y + self.cell_size_y)
+                upper_right = (wafer_x + self.cell_size_x, wafer_y + self.cell_size_y)
                 center = (
-                    (lower_left[0] + lower_right[0]) / 2,
-                    (lower_left[1] + upper_left[1]) / 2,
-                )
-
-                are_cell_bounds_in_wafer = list(
-                    map(
-                        lambda points: utils.euclidean_distance(points)
-                        <= (self.wafer_radius - self.edge_exclusion),
-                        bounds,
+                        (lower_left[0] + lower_right[0]) / 2,
+                        (lower_left[1] + upper_left[1]) / 2,
                     )
-                )
+                bounds = (lower_left, lower_right, upper_left, upper_right)
+                
+                # check boundaries of cell wrt the coverage parameter
+                if self.coverage != 'none':
+                    are_cell_bounds_in_wafer = list(
+                            map(
+                                lambda points: utils.euclidean_distance(points)
+                                <= (self.wafer_radius - self.edge_exclusion),
+                                bounds,
+                            )
+                        )
 
-                in_for_full = any(are_cell_bounds_in_wafer)
-                in_for_inner = all(are_cell_bounds_in_wafer)
-
-                if (self.coverage == "full" and in_for_full) or (
-                    self.coverage == "inner" and in_for_inner
-                ):
+                    in_for_full = any(are_cell_bounds_in_wafer)
+                    in_for_inner = all(are_cell_bounds_in_wafer)
+                    
+                    if (self.coverage == "full" and in_for_full) or (
+                            self.coverage == "inner" and in_for_inner
+                        ):
+                        self._cell_map[cell_label] = bounds + (center,)
+                else:
                     self._cell_map[cell_label] = bounds + (center,)
+            
+        else:    
+            # define wafermap based on grid parameters
+            
+            self._num_of_cells_x = math.ceil(
+                2
+                * (self.wafer_radius - self.edge_exclusion)
+                / (self.cell_size_x + self.cell_margin_x)
+            )
+            self._num_of_cells_y = math.ceil(
+                2
+                * (self.wafer_radius - self.edge_exclusion)
+                / (self.cell_size_y + self.cell_margin_y)
+            )
+
+            # Add grid
+            min_index_x = -math.ceil(self._num_of_cells_x / 2) - 1
+            max_index_x = math.ceil(self._num_of_cells_x / 2) + 1
+            min_index_y = -math.ceil(self._num_of_cells_y / 2) - 1
+            max_index_y = math.ceil(self._num_of_cells_y / 2) + 1
+            step_x = self.cell_size_x + self.cell_margin_x
+            step_y = self.cell_size_y + self.cell_margin_y
+            for i_x in range(min_index_x, max_index_x):
+                for i_y in range(min_index_y, max_index_y):
+                    cell_label = (i_x - self.cell_origin_x, i_y - self.cell_origin_y)
+                    # print a box
+                    lower_bound = (
+                        (i_x - 0.5) * step_x + self.grid_offset_x,
+                        (i_y - 0.5) * step_y + self.grid_offset_y,
+                    )
+                    upper_bound = (
+                        (i_x + 0.5) * step_x + self.grid_offset_x,
+                        (i_y + 0.5) * step_y + self.grid_offset_y,
+                    )
+                    lower_left = (
+                        lower_bound[0] + self.cell_margin_x / 2,
+                        lower_bound[1] + self.cell_margin_y / 2,
+                    )
+                    lower_right = (
+                        lower_bound[0] + self.cell_margin_x / 2 + self.cell_size_x,
+                        lower_bound[1] + self.cell_margin_y / 2,
+                    )
+                    upper_left = (
+                        upper_bound[0] - self.cell_margin_x / 2 - self.cell_size_x,
+                        upper_bound[1] - self.cell_margin_y / 2,
+                    )
+                    upper_right = (
+                        upper_bound[0] - self.cell_margin_x / 2,
+                        upper_bound[1] - self.cell_margin_y / 2,
+                    )
+                    bounds = (lower_left, lower_right, upper_left, upper_right)
+                    center = (
+                        (lower_left[0] + lower_right[0]) / 2,
+                        (lower_left[1] + upper_left[1]) / 2,
+                    )
+
+                    # check boundaries of cell wrt the coverage parameter
+                    if self.coverage != 'none':
+                        are_cell_bounds_in_wafer = list(
+                            map(
+                                lambda points: utils.euclidean_distance(points)
+                                <= (self.wafer_radius - self.edge_exclusion),
+                                bounds,
+                            )
+                        )
+                        in_for_full = any(are_cell_bounds_in_wafer)
+                        in_for_inner = all(are_cell_bounds_in_wafer)
+
+                        if (self.coverage == "full" and in_for_full) or (
+                            self.coverage == "inner" and in_for_inner
+                        ):
+                            self._cell_map[cell_label] = bounds + (center,)
+                    else:
+                        self._cell_map[cell_label] = bounds + (center,)
 
         self.current_cell_idx = 0
 
@@ -220,6 +271,7 @@ class WaferMap(WaferMapGrid):
         wafer_radius: float,
         cell_size: tuple[float, float],
         cell_margin: tuple[float, float] = (0.0, 0.0),
+        cells: list[tuple[float, float, int, int]] = [],
         cell_origin: tuple[int, int] = (0, 0),
         grid_offset: tuple[float, float] = (0.0, 0.0),
         edge_exclusion: float = 3.0,
@@ -235,6 +287,7 @@ class WaferMap(WaferMapGrid):
         :param wafer_radius: Wafer diameter in mm
         :param cell_size: Cell size in mm, (x, y)
         :param cell_margin: Distance between cells in mm, (x, y)
+        :param cells: Optionally pass in directly a list of cells [(wafer_x, wafer_y, cell_x, cell_y)] where (wafer_x, wafer_y) are the wafer coordinates of each cell origin (bottom left corner) and (cell_x, cell_y) are the cell coordinates. If this is passed in, the rest of the parameters are ignored.
         :param cell_origin: The cell index that is the origin (0, 0) of the map, (x, y)
         :param grid_offset: Grid offset in mm, (x, y)
         :param edge_exclusion: Margin from the wafer edge where a red edge exclusion
@@ -260,6 +313,7 @@ class WaferMap(WaferMapGrid):
             wafer_radius,
             cell_size,
             cell_margin,
+            cells,
             cell_origin,
             grid_offset,
             edge_exclusion,

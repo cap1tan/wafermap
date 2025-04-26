@@ -173,6 +173,17 @@ class FunctionalTestsWafermap(unittest.TestCase):
             conversion_factor=1,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_150_sipp27.html"))
+        
+        wm = wafermap.WaferMap(
+            wafer_radius=150,
+            cell_size=(13.702, 24.846),
+            cell_margin=(0.0, 0.0),
+            grid_offset=(-2.05, -4.1),
+            edge_exclusion=2.2,
+            coverage="none",
+            notch_orientation=270,
+        )
+        wm.save_html(os.path.join(self.output_dir, "test_wafermap_none_150.html"))
 
     def test_wafermap_conversion_factor(self):
 
@@ -922,3 +933,79 @@ class FunctionalTestsWafermap(unittest.TestCase):
         )
         # save to html
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_example1.html"))
+    
+    def test_wafermap_example2(self):
+        # define the wafermap
+        wm = wafermap.WaferMap(
+            wafer_radius=150.0,
+            cell_size=(6.0, 10.0),
+            cell_origin=(-6, -12),
+            cell_margin=(0.0, 0.0),
+            grid_offset=(0.0, 0.0),
+            edge_exclusion=0,
+            coverage="inner",
+            notch_orientation=270,
+            conversion_factor=1e-2
+        )
+
+        # save to png
+        wm.save_png(
+            os.path.join(self.output_dir, "test_wafermap_example2.png"), autocrop=False
+        )
+        # save to html
+        wm.save_html(os.path.join(self.output_dir, "test_wafermap_example2.html"))
+
+    def test_wafermap_cells1(self):
+        cells = []
+        cell_size = (5.4, 12.55)
+        cell_margin = (1.0, 2.5)
+        wafer_radius = 150.0
+        num_of_cells_x = int(2*wafer_radius/(cell_size[0] + cell_margin[0])) + 1
+        num_of_cells_y = int(2*wafer_radius/(cell_size[1] + cell_margin[1])) + 1
+        
+        for i in range(num_of_cells_y):
+            for j in range(num_of_cells_x):
+                cells.append((j*(cell_size[0] + cell_margin[0]) - wafer_radius, 
+                              i*(cell_size[1] + cell_margin[1]) - wafer_radius, 
+                              j, i))
+        
+        wm = wafermap.WaferMap(
+            wafer_radius=wafer_radius,
+            cell_size=cell_size,
+            cell_margin=cell_margin,
+            edge_exclusion=2.2,
+            coverage="none",
+            notch_orientation=270,
+            cells=cells,
+            conversion_factor=1
+        )
+        wm.save_html(os.path.join(self.output_dir, "test_wafermap_cells1.html"))
+    
+    def test_wafermap_cells2(self):
+        cells = []
+        cell_size = (5, 10)
+        cell_margin = (0.0, 0.0)
+        wafer_radius = 150.0
+        edge_exclusion = 50
+        coverage = "full"
+        useful_area = 2*(wafer_radius - edge_exclusion)
+        num_of_cells_x = int(useful_area/(cell_size[0] + cell_margin[0])) + 1
+        num_of_cells_y = int(useful_area/(cell_size[1] + cell_margin[1])) + 1
+        
+        for i in range(num_of_cells_y):
+            for j in range(num_of_cells_x):
+                cells.append((j*(cell_size[0] + cell_margin[0]) - useful_area/2, 
+                              i*(cell_size[1] + cell_margin[1]) - useful_area/2, 
+                              j, i))
+        
+        wm = wafermap.WaferMap(
+            wafer_radius=wafer_radius,
+            cell_size=cell_size,
+            cell_margin=cell_margin,
+            edge_exclusion=edge_exclusion,
+            coverage=coverage,
+            notch_orientation=270,
+            cells=cells,
+            conversion_factor=1
+        )
+        wm.save_html(os.path.join(self.output_dir, "test_wafermap_cells2.html"))
