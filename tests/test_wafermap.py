@@ -291,6 +291,17 @@ class FunctionalTestsWafermap(unittest.TestCase):
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_26_15.5_ee3.html"))
 
+        wm = wafermap.WaferMap(
+            wafer_radius=150.0,
+            cell_size=(6.0, 10.0),
+            cell_margin=(0.0, 0.0),
+            grid_offset=(0.0, 0.0),
+            edge_exclusion=0,
+            coverage="full",
+            notch_orientation=270,
+        )
+        wm.save_html(os.path.join(self.output_dir, "test_wafermap_6_10_ee0.html"))
+
     def test_wafermap_cell_margin(self):
         wm = wafermap.WaferMap(
             wafer_radius=100,
@@ -419,6 +430,21 @@ class FunctionalTestsWafermap(unittest.TestCase):
             os.path.join(self.output_dir, "test_wafermap_png2_autocrop.png"),
             autocrop=True,
         )
+    
+    def test_wafermap_html_str1(self):
+        wm = wafermap.WaferMap(
+            wafer_radius=150.0,
+            cell_size=(6.0, 10.0),
+            cell_margin=(0.0, 0.0),
+            grid_offset=(0.0, 0.0),
+            edge_exclusion=0,
+            coverage="full",
+            notch_orientation=270,
+        )
+        wm_html = wm.save_html(None)
+
+        assert r"\n" not in wm_html
+        assert "\\\\" not in wm_html
 
     def test_wafermap_add_image1(self):
         wm = wafermap.WaferMap(

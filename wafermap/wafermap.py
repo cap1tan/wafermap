@@ -69,8 +69,12 @@ class WaferMapGrid:
         self.cell_margin_y = self.conversion_factor * cell_margin[1]
         self.cell_origin_x = int(cell_origin[0])
         self.cell_origin_y = int(cell_origin[1])
-        self.grid_offset_x = self.conversion_factor * grid_offset[0]
-        self.grid_offset_y = self.conversion_factor * grid_offset[1]
+        self.grid_offset_x = self.conversion_factor * grid_offset[0] % self.cell_size_x
+        self.grid_offset_y = self.conversion_factor * grid_offset[1] % self.cell_size_y
+        self.min_x = {}  # min x index of the grid at position y
+        self.max_x = {}  # max x index of the grid at position y
+        self.min_y = {}  # min y index of the grid at position x
+        self.max_y = {}  # max y index of the grid at position x
         
         # init the _cell_map
         # the cell map is a dict that corresponds the pixel coordinates of the bounding
@@ -124,8 +128,28 @@ class WaferMapGrid:
                             self.coverage == "inner" and in_for_inner
                         ):
                         self._cell_map[cell_label] = bounds + (center,)
+
+                        # update index limits
+                        if cell_x not in self.min_y or cell_y < self.min_y[cell_x]:
+                            self.min_y[cell_x] = cell_y
+                        if cell_x not in self.max_y or cell_y > self.max_y[cell_x]:
+                            self.max_y[cell_x] = cell_y
+                        if cell_y not in self.min_x or cell_x < self.min_x[cell_y]:
+                            self.min_x[cell_y] = cell_x
+                        if cell_y not in self.max_x or cell_x > self.max_x[cell_y]:
+                            self.max_x[cell_y] = cell_x
                 else:
                     self._cell_map[cell_label] = bounds + (center,)
+
+                    # update index limits
+                    if cell_x not in self.min_y or cell_y < self.min_y[cell_x]:
+                        self.min_y[cell_x] = cell_y
+                    if cell_x not in self.max_y or cell_y > self.max_y[cell_x]:
+                        self.max_y[cell_x] = cell_y
+                    if cell_y not in self.min_x or cell_x < self.min_x[cell_y]:
+                        self.min_x[cell_y] = cell_x
+                    if cell_y not in self.max_x or cell_x > self.max_x[cell_y]:
+                        self.max_x[cell_y] = cell_x
             
         else:    
             # define wafermap based on grid parameters
@@ -150,7 +174,9 @@ class WaferMapGrid:
             step_y = self.cell_size_y + self.cell_margin_y
             for i_x in range(min_index_x, max_index_x):
                 for i_y in range(min_index_y, max_index_y):
-                    cell_label = (i_x - self.cell_origin_x, i_y - self.cell_origin_y)
+                    cell_x = i_x - self.cell_origin_x
+                    cell_y = i_y - self.cell_origin_y
+                    cell_label = (cell_x, cell_y)
                     # print a box
                     lower_bound = (
                         (i_x - 0.5) * step_x + self.grid_offset_x,
@@ -198,8 +224,28 @@ class WaferMapGrid:
                             self.coverage == "inner" and in_for_inner
                         ):
                             self._cell_map[cell_label] = bounds + (center,)
+
+                            # update index limits
+                            if cell_x not in self.min_y or cell_y < self.min_y[cell_x]:
+                                self.min_y[cell_x] = int(cell_y)
+                            if cell_x not in self.max_y or cell_y > self.max_y[cell_x]:
+                                self.max_y[cell_x] = int(cell_y)
+                            if cell_y not in self.min_x or cell_x < self.min_x[cell_y]:
+                                self.min_x[cell_y] = int(cell_x)
+                            if cell_y not in self.max_x or cell_x > self.max_x[cell_y]:
+                                self.max_x[cell_y] = int(cell_x)
                     else:
                         self._cell_map[cell_label] = bounds + (center,)
+
+                        # update index limits
+                        if cell_x not in self.min_y or cell_y < self.min_y[cell_x]:
+                            self.min_y[cell_x] = int(cell_y)
+                        if cell_x not in self.max_y or cell_y > self.max_y[cell_x]:
+                            self.max_y[cell_x] = int(cell_y)
+                        if cell_y not in self.min_x or cell_x < self.min_x[cell_y]:
+                            self.min_x[cell_y] = int(cell_x)
+                        if cell_y not in self.max_x or cell_x > self.max_x[cell_y]:
+                            self.max_x[cell_y] = int(cell_x)
 
         self.current_cell_idx = 0
 
@@ -411,25 +457,65 @@ class WaferMap(WaferMapGrid):
             ).add_to(self._edge_exclusion_layer)
 
         # Add grid
-        for cell, (
-            lower_left,
-            lower_right,
-            upper_left,
-            upper_right,
-            center,
-        ) in self.cell_map.items():
-            # add the folium Rectangle to the _cell_map
-            self._cell_map[cell] += (
-                folium.vector_layers.Rectangle(
-                    [utils.swap(lower_left), utils.swap(upper_right)],
-                    popup=None,
-                    tooltip=None,
+        cell_borders = []
+        # add the horizontal borders of the grid
+        min_y = min(self.min_y.values()) if self.min_y else 0
+        max_y = max(self.max_y.values()) if self.max_y else 0
+        for y_line in range(min_y, max_y + 1):
+            # find the minimum and maximum x index for this y position from the cell_map
+            # this is done to avoid drawing the grid lines outside the wafer
+            min_index_x = self.min_x.get(y_line, self.cell_origin_x)
+            max_index_x = self.max_x.get(y_line, self.cell_origin_x)
+             # add the folium PolyLine to the _grid_layer
+            border_x = folium.vector_layers.PolyLine(
+                    locations=[
+                        utils.swap(
+                            (self.cell_size_x * min_index_x + self.grid_offset_x,)
+                            + (self.cell_size_y * y_line + self.grid_offset_y,)
+                        ),
+                        utils.swap(
+                            (self.cell_size_x * max_index_x + self.grid_offset_x,)
+                            + (self.cell_size_y * y_line + self.grid_offset_y,)
+                        ),
+                    ],
                     color="#142d2d",
                     weight=0.2,
                     fill=False,
-                ),
+                )
+            cell_borders.append(border_x)
+            border_x.add_to(self._grid_layer)
+        
+        # add the vertical borders of the grid
+        min_x = min(self.min_x.values()) if self.min_x else 0
+        max_x = max(self.max_x.values()) if self.max_x else 0
+        for x_lines in range(min_x, max_x + 1):
+            # find the minimum and maximum y index for this x position from the cell_map
+            # this is done to avoid drawing the grid lines outside the wafer
+            min_index_y = self.min_y.get(x_lines, self.cell_origin_y)
+            max_index_y = self.max_y.get(x_lines, self.cell_origin_y)
+             # add the folium PolyLine to the _grid_layer
+            border_y = folium.vector_layers.PolyLine(
+                locations=[
+                    utils.swap(
+                        (self.cell_size_x * x_lines + self.grid_offset_x,)
+                        + (self.cell_size_y * min_index_y + self.grid_offset_y,)
+                    ),
+                    utils.swap(
+                        (self.cell_size_x * x_lines + self.grid_offset_x,)
+                        + (self.cell_size_y * max_index_y + self.grid_offset_y,)
+                    ),
+                ],
+                color="#142d2d",
+                weight=0.2,
+                fill=False,
             )
-            self._cell_map[cell][-1].add_to(self._grid_layer)
+            cell_borders.append(border_y)
+            border_y.add_to(self._grid_layer)
+        
+        for cell, (
+            lower_left,
+            *_
+        ) in self.cell_map.items():
 
             # print labels
             cell_label_position = (
@@ -445,6 +531,41 @@ class WaferMap(WaferMapGrid):
                     f'text-align: center">{str(cell)}</div>',
                 ),
             ).add_to(self._cell_labels_layer)
+
+        # for cell, (
+        #     lower_left,
+        #     lower_right,
+        #     upper_left,
+        #     upper_right,
+        #     center,
+        # ) in self.cell_map.items():
+        #     # add the folium Rectangle to the _cell_map
+        #     self._cell_map[cell] += (
+        #         folium.vector_layers.Rectangle(
+        #             [utils.swap(lower_left), utils.swap(upper_right)],
+        #             popup=None,
+        #             tooltip=None,
+        #             color="#142d2d",
+        #             weight=0.2,
+        #             fill=False,
+        #         ),
+        #     )
+        #     self._cell_map[cell][-1].add_to(self._grid_layer)
+
+        #     # print labels
+        #     cell_label_position = (
+        #         lower_left[0] + (0.5 * self.cell_size_x),
+        #         lower_left[1] + (0.5 * self.cell_size_y),
+        #     )
+        #     folium.map.Marker(
+        #         utils.swap(cell_label_position),
+        #         icon=folium.features.DivIcon(
+        #             icon_size=(50, 20),
+        #             icon_anchor=(25, 10),
+        #             html=f'<div style="font-size: 8pt; color: black;'
+        #             f'text-align: center">{str(cell)}</div>',
+        #         ),
+        #     ).add_to(self._cell_labels_layer)
 
         self._grid_layer.add_to(folium_map)
         self._cell_labels_layer.add_to(folium_map)
