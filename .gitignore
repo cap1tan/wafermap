@@ -1,4 +1,5 @@
 # Test files (user-defined)
+_dev/
 tests/*.html
 tests/*.png
 tests/*.jpg
