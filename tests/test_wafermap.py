@@ -553,6 +553,39 @@ class FunctionalTestsWafermap(unittest.TestCase):
             marker_style={},
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_image2.html"))
+    
+    def test_wafermap_add_image3(self):
+        wm = wafermap.WaferMap(
+            wafer_radius=100,
+            cell_size=(15.29, 14.985),
+            cell_margin=(0.33, 0.735),
+            grid_offset=(0.5, 8.5),
+            edge_exclusion=2.0,
+            coverage="full",
+            notch_orientation=270,
+            conversion_factor=1.0
+        )
+        wm.add_image(
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_17_147375.jpg"
+            ),
+            cell=(1, -5),
+            offset=(0.0, 0.0),
+            marker_style={},
+        )
+        wm.add_point(
+            cell=(1, -5),
+            offset=(0, 0)
+        )
+        wm.add_image(
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_17_147375.jpg"
+            ),
+            cell=None,
+            offset=(9.0, 62.0),
+            marker_style={},
+        )
+        wm.save_html(os.path.join(self.output_dir, "test_wafermap_image3.html"))
 
     def test_wafermap_add_vectors1(self):
         cell_size = (26, 14)

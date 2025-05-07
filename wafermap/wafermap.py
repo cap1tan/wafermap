@@ -580,40 +580,38 @@ class WaferMap(WaferMapGrid):
                 print(f"Error: Cannot create thumbnail for {image_source_file}")
         # find position to put image
         if cell:
-            image_coordinates = (
+            image_coordinates = utils.swap((
                 image_origin[0] + offset[0],
                 image_origin[1] + offset[1],
-            )  # position within the cell
+            ))  # position within the cell
             image_bounds = [
                 image_coordinates,
                 (
-                    image_coordinates[0]
-                    + image_height * 1 / 10,  # reduce image size to 10%
+                    image_coordinates[0] + image_height * 1 / 10,  # reduce image size to 10%
                     image_coordinates[1] + image_width * 1 / 10,
                 ),
             ]
             cell_bounds = [
                 image_coordinates,
                 (
-                    self._cell_map[cell][3][0],
                     self._cell_map[cell][3][1],
+                    self._cell_map[cell][3][0],
                 ),  # cell upper right corner
             ]
         else:
             # offset is wafer coordinates
-            image_coordinates = (
+            image_coordinates = utils.swap((
                 image_origin[0],
                 image_origin[1],
-            )
+            ))
             image_bounds = [
                 image_coordinates,  # position within the wafer
                 (
-                    image_coordinates[0]
-                    + image_height * 1 / 10,  # reduce image size to 10%
+                    image_coordinates[0] + image_height * 1 / 10,  # reduce image size to 10%
                     image_coordinates[1] + image_width * 1 / 10,
                 ),
             ]
-            cell_bounds = image_bounds
+            cell_bounds = image_bounds  # no bounds
 
         if not marker_style:
             # add image as ImageOverlay
