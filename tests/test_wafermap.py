@@ -16,15 +16,24 @@ class FunctionalTestsWafermap(unittest.TestCase):
     """Functional tests for the wafermap package."""
 
     @classmethod
-    def setUpClass(self):
-        self.output_dir = ".\\tests\\tests_output\\"
-        self.input_dir = ".\\tests\\"
+    def setUpClass(cls):
+        cls.output_dir = ".\\tests\\tests_output\\"
+        cls.input_dir = ".\\tests\\"
+
+        # delete contents of output dir
+        for f in os.listdir(cls.output_dir):
+            file_path = os.path.join(cls.output_dir, f)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(f"Error deleting file {file_path}: {e}")
 
     def test_wafermap_invalid(self):
 
         raised = False
         try:
-            wm = wafermap.WaferMap(
+            _ = wafermap.WaferMap(
                 wafer_radius=-100,
                 cell_size=(13.702, 24.846),
                 cell_margin=(0.0, 0.0),
@@ -39,7 +48,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             raise ValueError("Test failed")
 
         try:
-            wm = wafermap.WaferMap(
+            _ = wafermap.WaferMap(
                 wafer_radius=100,
                 cell_size=(0, 24.846),
                 cell_margin=(0.0, 0.0),
@@ -54,7 +63,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             raise ValueError("Test failed")
 
         try:
-            wm = wafermap.WaferMap(
+            _ = wafermap.WaferMap(
                 wafer_radius=100,
                 cell_size=(13.702, 24.846),
                 cell_margin=(0.0, -1),
@@ -69,7 +78,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             raise ValueError("Test failed")
 
         try:
-            wm = wafermap.WaferMap(
+            _ = wafermap.WaferMap(
                 wafer_radius=100,
                 cell_size=(13.702, 24.846),
                 cell_margin=(0.0, 0.0),
@@ -84,7 +93,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             raise ValueError("Test failed")
 
         try:
-            wm = wafermap.WaferMap(
+            _ = wafermap.WaferMap(
                 wafer_radius=100,
                 cell_size=(13.702, 24.846),
                 cell_margin=(0.0, 0.0),
@@ -112,8 +121,15 @@ class FunctionalTestsWafermap(unittest.TestCase):
         assert swap(test5) == [(2, 1), (4, 3), (0, 0)]
         test6 = ["ab", (1, 2), "c", 42, [1, 2, 3], (0, -1)]
         assert swap(test6) == ["ab", (2, 1), "c", 42, [1, 2, 3], (-1, 0)]
-        test7 = ((1, 2), (3, 4), (5, 6), (7, 8), (9, 10), dict(a=1, b=2))
-        assert swap(test7) == ((2, 1), (4, 3), (6, 5), (8, 7), (10, 9), dict(a=1, b=2))
+        test7 = ((1, 2), (3, 4), (5, 6), (7, 8), (9, 10), {"a": 1, "b": 2})
+        assert swap(test7) == (
+            (2, 1),
+            (4, 3),
+            (6, 5),
+            (8, 7),
+            (10, 9),
+            {"a": 1, "b": 2},
+        )
         test8 = [(1, 2), (3, 4)]
         assert swap(test8) == [(4, 3), (2, 1)]
 
@@ -128,7 +144,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_full.html"))
-
+        assert os.path.isfile(os.path.join(self.output_dir, "test_wafermap_full.html"))
         wm = wafermap.WaferMap(
             wafer_radius=150,
             cell_size=(13.702, 24.846),
@@ -139,7 +155,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_full_150.html"))
-
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_full_150.html")
+        )
         wm = wafermap.WaferMap(
             wafer_radius=100,
             cell_size=(13.702, 24.846),
@@ -150,7 +168,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_inner.html"))
-
+        assert os.path.isfile(os.path.join(self.output_dir, "test_wafermap_inner.html"))
         wm = wafermap.WaferMap(
             wafer_radius=150,
             cell_size=(13.702, 24.846),
@@ -161,7 +179,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_inner_150.html"))
-
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_inner_150.html")
+        )
         wm = wafermap.WaferMap(
             wafer_radius=150,
             cell_size=(25.87, 15.31),
@@ -173,7 +193,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             conversion_factor=1,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_150_sipp27.html"))
-        
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_150_sipp27.html")
+        )
         wm = wafermap.WaferMap(
             wafer_radius=150,
             cell_size=(13.702, 24.846),
@@ -184,6 +206,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_none_150.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_none_150.html")
+        )
 
     def test_wafermap_conversion_factor(self):
 
@@ -200,6 +225,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.save_html(
             os.path.join(self.output_dir, "test_wafermap_conversion_1e-2.html")
         )
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_conversion_1e-2.html")
+        )
 
     def test_wafermap_notch(self):
         wm = wafermap.WaferMap(
@@ -212,7 +240,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_notch_270.html"))
-
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_notch_270.html")
+        )
         wm = wafermap.WaferMap(
             wafer_radius=100,
             cell_size=(13.702, 24.846),
@@ -223,7 +253,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=180,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_notch_180.html"))
-
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_notch_180.html")
+        )
         wm = wafermap.WaferMap(
             wafer_radius=100,
             cell_size=(13.702, 24.846),
@@ -234,6 +266,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=67,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_notch_67.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_notch_67.html")
+        )
 
     def test_wafermap_grid(self):
         wm = wafermap.WaferMap(
@@ -246,7 +281,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_10_20.html"))
-
+        assert os.path.isfile(os.path.join(self.output_dir, "test_wafermap_10_20.html"))
         wm = wafermap.WaferMap(
             wafer_radius=100,
             cell_size=(1, 10),
@@ -257,7 +292,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_1_10.html"))
-
+        assert os.path.isfile(os.path.join(self.output_dir, "test_wafermap_1_10.html"))
         wm = wafermap.WaferMap(
             wafer_radius=100,
             cell_size=(2, 6),
@@ -268,7 +303,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_2_6.html"))
-
+        assert os.path.isfile(os.path.join(self.output_dir, "test_wafermap_2_6.html"))
         wm = wafermap.WaferMap(
             wafer_radius=150,
             cell_size=(25.96, 15.504),
@@ -279,7 +314,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_26_15.5_ee0.html"))
-
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_26_15.5_ee0.html")
+        )
         wm = wafermap.WaferMap(
             wafer_radius=150,
             cell_size=(25.96, 15.504),
@@ -290,6 +327,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_26_15.5_ee3.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_26_15.5_ee3.html")
+        )
 
     def test_wafermap_cell_margin(self):
         wm = wafermap.WaferMap(
@@ -302,6 +342,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_margin_8_15.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_margin_8_15.html")
+        )
 
     def test_wafermap_cell_origin(self):
         wm = wafermap.WaferMap(
@@ -315,7 +358,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_origin_0_0.html"))
-
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_origin_0_0.html")
+        )
         wm = wafermap.WaferMap(
             wafer_radius=100,
             cell_size=(13.702, 24.846),
@@ -327,7 +372,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_origin_2_1.html"))
-
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_origin_2_1.html")
+        )
         wm = wafermap.WaferMap(
             wafer_radius=100,
             cell_size=(13.702, 24.846),
@@ -339,7 +386,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_origin_0_-2.html"))
-
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_origin_0_-2.html")
+        )
         wm = wafermap.WaferMap(
             wafer_radius=100,
             cell_size=(13.702, 24.846),
@@ -351,6 +400,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_origin_0_-10.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_origin_0_-10.html")
+        )
 
     def test_wafermap_colors(self):
         wm = wafermap.WaferMap(
@@ -366,7 +418,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             map_bg_color=None,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_color1.html"))
-
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_color1.html")
+        )
         wm = wafermap.WaferMap(
             wafer_radius=100,
             cell_size=(13.702, 24.846),
@@ -380,6 +434,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             map_bg_color=(0.3, 0.9, 1.0),
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_color2.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_color2.html")
+        )
 
     def test_wafermap_edge_exclusion(self):
         wm = wafermap.WaferMap(
@@ -392,6 +449,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             notch_orientation=270,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_ee_10.html"))
+        assert os.path.isfile(os.path.join(self.output_dir, "test_wafermap_ee_10.html"))
 
     def test_wafermap_png1(self):
         wm = wafermap.WaferMap(
@@ -405,6 +463,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.save_png(
             os.path.join(self.output_dir, "test_wafermap_png1.png"), autocrop=False
         )
+        assert os.path.isfile(os.path.join(self.output_dir, "test_wafermap_png1.png"))
 
     def test_wafermap_png2(self):
         wm = wafermap.WaferMap(
@@ -418,6 +477,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.save_png(
             os.path.join(self.output_dir, "test_wafermap_png2_autocrop.png"),
             autocrop=True,
+        )
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_png2_autocrop.png")
         )
 
     def test_wafermap_add_image1(self):
@@ -498,6 +560,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             marker_style={},
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_image1.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_image1.html")
+        )
 
     def test_wafermap_add_image2(self):
         wm = wafermap.WaferMap(
@@ -553,7 +618,10 @@ class FunctionalTestsWafermap(unittest.TestCase):
             marker_style={},
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_image2.html"))
-    
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_image2.html")
+        )
+
     def test_wafermap_add_image3(self):
         wm = wafermap.WaferMap(
             wafer_radius=100,
@@ -563,7 +631,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             edge_exclusion=2.0,
             coverage="full",
             notch_orientation=270,
-            conversion_factor=1.0
+            conversion_factor=1.0,
         )
         wm.add_image(
             image_source_file=os.path.join(
@@ -573,10 +641,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             offset=(0.0, 0.0),
             marker_style={},
         )
-        wm.add_point(
-            cell=(1, -5),
-            offset=(0, 0)
-        )
+        wm.add_point(cell=(1, -5), offset=(0, 0))
         wm.add_image(
             image_source_file=os.path.join(
                 self.input_dir, "INS3300_Lot_1_Wafer_17_147375.jpg"
@@ -586,6 +651,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             marker_style={},
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_image3.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_image3.html")
+        )
 
     def test_wafermap_add_vectors1(self):
         cell_size = (26, 14)
@@ -619,6 +687,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             )
 
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_vectors1.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_vectors1.html")
+        )
 
     def test_wafermap_add_vectors2(self):
         cell_size = (26, 14)
@@ -649,6 +720,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             )
 
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_vectors2.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_vectors2.html")
+        )
 
     def test_wafermap_add_vectors3(self):
         wafer_radius = 100
@@ -680,6 +754,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             )
 
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_vectors3.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_vectors3.html")
+        )
 
     def test_wafermap_add_points1(self):
         cell_size = (26, 14)
@@ -700,6 +777,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             wm.add_point(cell=None, offset=wafer_point)
 
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_points1.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_points1.html")
+        )
 
     def test_wafermap_add_points2(self):
         cell_size = (26, 14)
@@ -730,6 +810,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
                 wm.add_point(cell=cell, offset=cell_point)
 
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_points2.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_points2.html")
+        )
 
     def test_wafermap_add_labels1(self):
         cell_size = (26, 14)
@@ -763,6 +846,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
                 )
 
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_labels1.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_labels1.html")
+        )
 
     def test_wafermap_style_cells1(self):
         cell_size = (26, 14)
@@ -805,6 +891,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
             wm.style_cell(cell=cell, cell_style=random_cell_style)
 
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_style_cells1.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_style_cells1.html")
+        )
 
     def test_wafermap_heatmap1(self):
 
@@ -835,6 +924,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.add_heatmap(data)
 
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_heatmap1.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_heatmap1.html")
+        )
 
     def test_wafermap_heatmap2(self):
 
@@ -859,6 +951,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.add_heatmap(data)
 
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_heatmap2.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_heatmap2.html")
+        )
 
     def test_wafermap_example1(self):
         # define the wafermap
@@ -964,9 +1059,15 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.save_png(
             os.path.join(self.output_dir, "test_wafermap_example1.png"), autocrop=True
         )
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_example1.png")
+        )
         # save to html
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_example1.html"))
-    
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_example1.html")
+        )
+
     def test_wafermap_example2(self):
         # define the wafermap
         wm = wafermap.WaferMap(
@@ -978,30 +1079,41 @@ class FunctionalTestsWafermap(unittest.TestCase):
             edge_exclusion=0,
             coverage="inner",
             notch_orientation=270,
-            conversion_factor=1e-2
+            conversion_factor=1e-2,
         )
 
         # save to png
         wm.save_png(
             os.path.join(self.output_dir, "test_wafermap_example2.png"), autocrop=False
         )
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_example2.png")
+        )
         # save to html
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_example2.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_example2.html")
+        )
 
     def test_wafermap_cells1(self):
         cells = []
         cell_size = (5.4, 12.55)
         cell_margin = (1.0, 2.5)
         wafer_radius = 150.0
-        num_of_cells_x = int(2*wafer_radius/(cell_size[0] + cell_margin[0])) + 1
-        num_of_cells_y = int(2*wafer_radius/(cell_size[1] + cell_margin[1])) + 1
-        
+        num_of_cells_x = int(2 * wafer_radius / (cell_size[0] + cell_margin[0])) + 1
+        num_of_cells_y = int(2 * wafer_radius / (cell_size[1] + cell_margin[1])) + 1
+
         for i in range(num_of_cells_y):
             for j in range(num_of_cells_x):
-                cells.append((j*(cell_size[0] + cell_margin[0]) - wafer_radius, 
-                              i*(cell_size[1] + cell_margin[1]) - wafer_radius, 
-                              j, i))
-        
+                cells.append(
+                    (
+                        j * (cell_size[0] + cell_margin[0]) - wafer_radius,
+                        i * (cell_size[1] + cell_margin[1]) - wafer_radius,
+                        j,
+                        i,
+                    )
+                )
+
         wm = wafermap.WaferMap(
             wafer_radius=wafer_radius,
             cell_size=cell_size,
@@ -1010,10 +1122,13 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage="none",
             notch_orientation=270,
             cells=cells,
-            conversion_factor=1
+            conversion_factor=1,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_cells1.html"))
-    
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_cells1.html")
+        )
+
     def test_wafermap_cells2(self):
         cells = []
         cell_size = (5, 10)
@@ -1021,16 +1136,21 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wafer_radius = 150.0
         edge_exclusion = 50
         coverage = "full"
-        useful_area = 2*(wafer_radius - edge_exclusion)
-        num_of_cells_x = int(useful_area/(cell_size[0] + cell_margin[0])) + 1
-        num_of_cells_y = int(useful_area/(cell_size[1] + cell_margin[1])) + 1
-        
+        useful_area = 2 * (wafer_radius - edge_exclusion)
+        num_of_cells_x = int(useful_area / (cell_size[0] + cell_margin[0])) + 1
+        num_of_cells_y = int(useful_area / (cell_size[1] + cell_margin[1])) + 1
+
         for i in range(num_of_cells_y):
             for j in range(num_of_cells_x):
-                cells.append((j*(cell_size[0] + cell_margin[0]) - useful_area/2, 
-                              i*(cell_size[1] + cell_margin[1]) - useful_area/2, 
-                              j, i))
-        
+                cells.append(
+                    (
+                        j * (cell_size[0] + cell_margin[0]) - useful_area / 2,
+                        i * (cell_size[1] + cell_margin[1]) - useful_area / 2,
+                        j,
+                        i,
+                    )
+                )
+
         wm = wafermap.WaferMap(
             wafer_radius=wafer_radius,
             cell_size=cell_size,
@@ -1039,6 +1159,29 @@ class FunctionalTestsWafermap(unittest.TestCase):
             coverage=coverage,
             notch_orientation=270,
             cells=cells,
-            conversion_factor=1
+            conversion_factor=1,
         )
         wm.save_html(os.path.join(self.output_dir, "test_wafermap_cells2.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_cells2.html")
+        )
+
+    def test_wafermap_pop_cell1(self):
+        # define the wafermap
+        wm = wafermap.WaferMap(
+            wafer_radius=100,  # all length dimensions in mm
+            cell_size=(15.29, 14.985),  # (sizeX, sizeY)
+            cell_margin=(0.33, 0.735),  # distance between cell borders (x, y)
+            cell_origin=(0, 0),  # which cell to select as origin (0, 0), in (x, y)
+            grid_offset=(0.5, 8.5),  # grid offset in (x, y)
+            edge_exclusion=2,  # margin from the wafer edge
+            coverage="full",  # 'full': will cover wafer with cells
+            notch_orientation=270,
+            conversion_factor=1.0,  # angle of notch in degrees
+        )
+
+        # save to html
+        wm.save_html(os.path.join(self.output_dir, "test_wafermap_pop_cell1.html"))
+        assert os.path.isfile(
+            os.path.join(self.output_dir, "test_wafermap_pop_cell1.html")
+        )

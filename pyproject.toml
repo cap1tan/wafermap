@@ -1,42 +1,72 @@
 [project]
 name = "wafermap"
-version = "0.2.9"
+version = "0.3.2"
 description = "A python package to plot maps of semiconductor wafers."
 authors = [
     {name = "Sotiris Thomas", email = "sothomas88@gmail.com"}
 ]
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.9"
-dependencies = [
-	"folium ~= 0.19.5",
-	"branca >= 0.6.0",
-	"Pillow ~= 11.1.0",
-	"numpy >= 2.00.0",
-	"html2image ~= 2.0.3"
-]
 keywords = ["semiconductor", "wafer", "layout", "plot", "grid"]
+requires-python = ">=3.10,<4.0"
+dependencies = [
+	"folium>=0.19.5",
+	"branca>=0.6.0",
+	"Pillow>=12.0.0",
+	"numpy>=2.00.0",
+	"html2image>=2.0.3"
+]
 
-[project.urls]
-repository = "https://github.com/cap1tan/wafermap"
-"Bug Tracker" = "https://github.com/cap1tan/wafermap/issues"
+[project.optional-dependencies]
+test = [
+	"black",
+	"isort",
+	"flake8",
+	"flake8-docstrings",
+	"pytest",
+	"pytest-cov",
+	# pre-commit = "^3.2.2"
+	# toml = "^0.10.2"
+	"pylint",
+	"tox",
+	"tox-poetry-installer",
+	"twine"
+]
 
-[tool.poetry.dependencies]
-python = ">=3.9,<4.0"
+# [tool.poetry.dependencies]
+# python = ">=3.10"
+# folium = { version = ">=0.19.5" }
+# branca = { version = ">=0.6.0" }
+# Pillow = { version = ">=11.1.0" }
+# numpy = { version = ">=2.00.0"}
+# html2image = { version = ">=2.0.3" }
+# black = { optional = true }
+# isort = { optional = true }
+# flake8 = { optional = true }
+# flake8-docstrings = { optional = true }
+# pytest = { optional = true }
+# pytest-cov = { optional = true }
+# pylint = { optional = true }
+# tox = { optional = true }
+# twine = { optional = true }
 
-[tool.poetry.group.dev.dependencies]
-black = ">=23.3.0"
-isort = ">=5.12.0"
-flake8 = {version = ">=6.0.0", python = ">=3.8.1"}
-flake8-docstrings = ">=1.7.0"
-pytest = ">=7.3.1"
-pytest-cov = "*"
-# pre-commit = "^3.2.2"
-# toml = "^0.10.2"
-pylint = ">=2.17.2"
-tox = ">=3.28.0"
-tox-poetry-installer = ">=0.10.2"
-twine = ">=4.0.2"
+
+[dependency-groups]
+test=[
+	"black",
+	"isort",
+	"flake8",
+	"flake8-docstrings",
+	"pytest",
+	"pytest-cov",
+	# pre-commit = "^3.2.2"
+	# toml = "^0.10.2"
+	"pylint",
+	"tox",
+	"tox-poetry-installer",
+	"twine"
+]
+
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

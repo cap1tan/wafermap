@@ -9,7 +9,11 @@ from typing import Union
 import branca
 import folium
 from folium import IFrame, plugins
-from html2image import Html2Image
+
+try:
+    from html2image import Html2Image
+except ImportError:
+    Html2Image = None
 from PIL import Image
 
 from wafermap import utils
@@ -23,7 +27,7 @@ class WaferMapGrid:
         wafer_radius: float,
         cell_size: tuple[float, float],
         cell_margin: tuple[float, float] = (0.0, 0.0),
-        cells: list[tuple[float, float, int, int]] = [],
+        cells: Union[None, list[tuple[float, float, int, int]]] = None,
         cell_origin: tuple[int, int] = (0, 0),
         grid_offset: tuple[float, float] = (0.0, 0.0),
         edge_exclusion: float = 3.0,
@@ -44,6 +48,8 @@ class WaferMapGrid:
         """
 
         # input validation
+        if cells is None:
+            cells = []
         if any(
             [
                 wafer_radius <= 0,
@@ -71,7 +77,7 @@ class WaferMapGrid:
         self.cell_origin_y = int(cell_origin[1])
         self.grid_offset_x = self.conversion_factor * grid_offset[0]
         self.grid_offset_y = self.conversion_factor * grid_offset[1]
-        
+
         # init the _cell_map
         # the cell map is a dict that corresponds the pixel coordinates of the bounding
         # box of each cell to the cell index:
@@ -84,17 +90,32 @@ class WaferMapGrid:
         # We consider the cell origin to be its lower left corner
         # y is latitude, x is longitude
         self._cell_map = {}
-        
+
         if cells:
             # define wafermap based on a list of cells instead of grid parameters
             if len(cells[0]) != 4:
-                raise ValueError("Invalid input. Expected each cell to be a tuple of (wafer_x, wafer_y cell_x, cell_y)")
-            if len(cells) > 1 and ((abs(cells[1][0] - cells[0][0]) != 0 and abs(cells[1][0] - cells[0][0]) < (cell_size[0] + cell_margin[0])) or 
-                                   (abs(cells[1][1] - cells[0][1]) != 0 and abs(cells[1][1] - cells[0][1]) < (cell_size[1] + cell_margin[1]))):
-                raise ValueError("Invalid input. Grid cell size is inconsistent with input cell_size.")
-            
-            for (wafer_x, wafer_y, cell_x, cell_y) in cells:
-                wafer_x, wafer_y = wafer_x * self.conversion_factor, wafer_y * self.conversion_factor
+                raise ValueError(
+                    "Invalid input. Expected each cell to be a tuple of (wafer_x, wafer_y cell_x, cell_y)"
+                )
+            if len(cells) > 1 and (
+                (
+                    abs(cells[1][0] - cells[0][0]) != 0
+                    and abs(cells[1][0] - cells[0][0]) < (cell_size[0] + cell_margin[0])
+                )
+                or (
+                    abs(cells[1][1] - cells[0][1]) != 0
+                    and abs(cells[1][1] - cells[0][1]) < (cell_size[1] + cell_margin[1])
+                )
+            ):
+                raise ValueError(
+                    "Invalid input. Grid cell size is inconsistent with input cell_size."
+                )
+
+            for wafer_x, wafer_y, cell_x, cell_y in cells:
+                wafer_x, wafer_y = (
+                    wafer_x * self.conversion_factor,
+                    wafer_y * self.conversion_factor,
+                )
                 cell_label = (cell_x, cell_y)
                 # print a box
                 lower_left = (wafer_x, wafer_y)
@@ -102,34 +123,34 @@ class WaferMapGrid:
                 upper_left = (wafer_x, wafer_y + self.cell_size_y)
                 upper_right = (wafer_x + self.cell_size_x, wafer_y + self.cell_size_y)
                 center = (
-                        (lower_left[0] + lower_right[0]) / 2,
-                        (lower_left[1] + upper_left[1]) / 2,
-                    )
+                    (lower_left[0] + lower_right[0]) / 2,
+                    (lower_left[1] + upper_left[1]) / 2,
+                )
                 bounds = (lower_left, lower_right, upper_left, upper_right)
-                
+
                 # check boundaries of cell wrt the coverage parameter
-                if self.coverage != 'none':
+                if self.coverage != "none":
                     are_cell_bounds_in_wafer = list(
-                            map(
-                                lambda points: utils.euclidean_distance(points)
-                                <= (self.wafer_radius - self.edge_exclusion),
-                                bounds,
-                            )
+                        map(
+                            lambda points: utils.euclidean_distance(points)
+                            <= (self.wafer_radius - self.edge_exclusion),
+                            bounds,
                         )
+                    )
 
                     in_for_full = any(are_cell_bounds_in_wafer)
                     in_for_inner = all(are_cell_bounds_in_wafer)
-                    
+
                     if (self.coverage == "full" and in_for_full) or (
-                            self.coverage == "inner" and in_for_inner
-                        ):
+                        self.coverage == "inner" and in_for_inner
+                    ):
                         self._cell_map[cell_label] = bounds + (center,)
                 else:
                     self._cell_map[cell_label] = bounds + (center,)
-            
-        else:    
+
+        else:
             # define wafermap based on grid parameters
-            
+
             self._num_of_cells_x = math.ceil(
                 2
                 * (self.wafer_radius - self.edge_exclusion)
@@ -183,7 +204,7 @@ class WaferMapGrid:
                     )
 
                     # check boundaries of cell wrt the coverage parameter
-                    if self.coverage != 'none':
+                    if self.coverage != "none":
                         are_cell_bounds_in_wafer = list(
                             map(
                                 lambda points: utils.euclidean_distance(points)
@@ -277,7 +298,7 @@ class WaferMap(WaferMapGrid):
         edge_exclusion: float = 3.0,
         coverage="full",
         notch_orientation: float = 270.0,
-        wafer_edge_color: tuple[float, float, float] = (0.0, 0.0, 0.0),
+        wafer_edge_color: Union[None, tuple[float, float, float]] = None,
         map_bg_color: Union[None, tuple[float, float, float]] = None,
         conversion_factor: float = 1.0,
     ):
@@ -301,13 +322,15 @@ class WaferMap(WaferMapGrid):
         """
 
         # input validation
+        if wafer_edge_color is None:
+            wafer_edge_color = (0.0, 0.0, 0.0)
         if any(
             [
                 len(wafer_edge_color) != 3,
                 any([x < 0 for x in wafer_edge_color]),
             ]
         ):
-            raise ValueError("Invalid input")
+            raise ValueError("Invalid wafer_edge_color")
 
         super().__init__(
             wafer_radius,
@@ -326,7 +349,7 @@ class WaferMap(WaferMapGrid):
             map_bg_color = utils.to255(*utils.invert(*wafer_edge_color))
         else:
             map_bg_color = utils.to255(*map_bg_color)
-        wafer_edge_color = utils.rgb_to_html(*wafer_edge_color)
+        self.wafer_edge_color = utils.rgb_to_html(*wafer_edge_color)
 
         # Init the folium map
         folium_map = folium.Map(
@@ -372,7 +395,7 @@ class WaferMap(WaferMapGrid):
         folium.Circle(
             radius=self.wafer_radius,
             location=(0.0, 0.0),
-            color=wafer_edge_color,
+            color=self.wafer_edge_color,
             fill=False,
         ).add_to(folium_map)
 
@@ -396,7 +419,7 @@ class WaferMap(WaferMapGrid):
                 (0, 0),
                 angle=self.notch_orientation,
             ),
-            color=wafer_edge_color,
+            color=self.wafer_edge_color,
             fill=False,
         ).add_to(folium_map)
 
@@ -413,10 +436,10 @@ class WaferMap(WaferMapGrid):
         # Add grid
         for cell, (
             lower_left,
-            lower_right,
-            upper_left,
+            _,
+            _,
             upper_right,
-            center,
+            _,
         ) in self.cell_map.items():
             # add the folium Rectangle to the _cell_map
             self._cell_map[cell] += (
@@ -492,27 +515,54 @@ class WaferMap(WaferMapGrid):
         if output_file is None:
             output_html = self.map.get_root().render()
             return output_html
-        else:
-            self.map.save(output_file)
-            return output_file
+        self.map.save(output_file)
+        return output_file
 
     def save_png(
         self, output_file: str = "wafermap.png", autocrop: bool = False
     ) -> Union[str, None]:
         """Save current Folium Map to a PNG image. html2image is required. autocrop will crop the white parts of the screenshot"""
+        if Html2Image is None:
+            raise ImportError(
+                "html2image is required to save wafermap as PNG. Please install it with 'pip install html2image'"
+            )
         # turn on/off relevant layers/controls
         self.map.options["zoomControl"] = False
-        hti = Html2Image(
-            output_path=os.path.dirname(output_file),
-            custom_flags=[
-                "--default-background-color=FFFFFF",
-                "--start-fullscreen",
-                "--headless",
-                "--virtual-time-budget=600",
-                "--hide-scrollbars",
-                f"--window-size={WaferMap.IMAGE_RESOLUTION[0]},{WaferMap.IMAGE_RESOLUTION[1]}",
-            ],
-        )
+        try:
+            hti = Html2Image(
+                browser="chrome",
+                output_path=os.path.dirname(output_file),
+                custom_flags=[
+                    "--default-background-color=FFFFFF",
+                    "--start-fullscreen",
+                    "--headless",
+                    "--virtual-time-budget=600",
+                    "--hide-scrollbars",
+                    f"--window-size={WaferMap.IMAGE_RESOLUTION[0]},{WaferMap.IMAGE_RESOLUTION[1]}",
+                ],
+            )
+        except (FileNotFoundError, TypeError):
+            # chrome is not present on the system. Use Edge if available
+            try:
+                hti = Html2Image(
+                    browser="edge",
+                    output_path=os.path.dirname(output_file),
+                    custom_flags=[
+                        "--default-background-color=FFFFFF",
+                        "--start-fullscreen",
+                        "--headless",
+                        "--virtual-time-budget=600",
+                        "--hide-scrollbars",
+                        f"--window-size={WaferMap.IMAGE_RESOLUTION[0]},{WaferMap.IMAGE_RESOLUTION[1]}",
+                    ],
+                )
+            except FileNotFoundError as e:
+                # neither chrome nor edge is present on the system
+                raise FileNotFoundError(
+                    "Neither Chrome nor Edge browsers were found on the system. "
+                    "One of these browsers is required to save wafermap as PNG. "
+                    "Please install one of them and try again."
+                ) from e
         html = self.map.get_root().render()
         screenshot_files = hti.screenshot(
             html_str=html, save_as=os.path.basename(output_file)
@@ -580,14 +630,17 @@ class WaferMap(WaferMapGrid):
                 print(f"Error: Cannot create thumbnail for {image_source_file}")
         # find position to put image
         if cell:
-            image_coordinates = utils.swap((
-                image_origin[0] + offset[0],
-                image_origin[1] + offset[1],
-            ))  # position within the cell
+            image_coordinates = utils.swap(
+                (
+                    image_origin[0] + offset[0],
+                    image_origin[1] + offset[1],
+                )
+            )  # position within the cell
             image_bounds = [
                 image_coordinates,
                 (
-                    image_coordinates[0] + image_height * 1 / 10,  # reduce image size to 10%
+                    image_coordinates[0]
+                    + image_height * 1 / 10,  # reduce image size to 10%
                     image_coordinates[1] + image_width * 1 / 10,
                 ),
             ]
@@ -600,14 +653,17 @@ class WaferMap(WaferMapGrid):
             ]
         else:
             # offset is wafer coordinates
-            image_coordinates = utils.swap((
-                image_origin[0],
-                image_origin[1],
-            ))
+            image_coordinates = utils.swap(
+                (
+                    image_origin[0],
+                    image_origin[1],
+                )
+            )
             image_bounds = [
                 image_coordinates,  # position within the wafer
                 (
-                    image_coordinates[0] + image_height * 1 / 10,  # reduce image size to 10%
+                    image_coordinates[0]
+                    + image_height * 1 / 10,  # reduce image size to 10%
                     image_coordinates[1] + image_width * 1 / 10,
                 ),
             ]
