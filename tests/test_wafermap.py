@@ -1,15 +1,16 @@
 """Automated testing functions"""
 
+import math
 import os.path
-
-# pylint: disable=redefined-outer-name, missing-function-docstring, invalid-name
-
 import random as rnd
 import unittest
 
-import numpy as np
-
 from wafermap import utils, wafermap
+
+# pylint: disable=redefined-outer-name, missing-function-docstring, invalid-name
+
+
+TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class FunctionalTestsWafermap(unittest.TestCase):
@@ -17,8 +18,9 @@ class FunctionalTestsWafermap(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.output_dir = ".\\tests\\tests_output\\"
-        cls.input_dir = ".\\tests\\"
+        cls.output_dir = os.path.join(TESTS_DIR, "tests_output")
+        cls.input_dir = TESTS_DIR
+        os.makedirs(cls.output_dir, exist_ok=True)
 
         # delete contents of output dir
         for f in os.listdir(cls.output_dir):
@@ -942,11 +944,14 @@ class FunctionalTestsWafermap(unittest.TestCase):
             conversion_factor=1e-2,
         )
 
-        data = (
-            np.random.normal(size=(N, 3))
-            * np.array([[wafer_radius / 4, wafer_radius / 4, 1]])
-            + np.array([[0, 0, 0]])
-        ).tolist()
+        data = [
+            (
+                rnd.gauss(0, wafer_radius / 4),
+                rnd.gauss(0, wafer_radius / 4),
+                rnd.gauss(),
+            )
+            for _ in range(N)
+        ]
 
         wm.add_heatmap(data)
 
@@ -1185,3 +1190,122 @@ class FunctionalTestsWafermap(unittest.TestCase):
         assert os.path.isfile(
             os.path.join(self.output_dir, "test_wafermap_pop_cell1.html")
         )
+
+    def test_wafermap_grid_cells(self):
+        grid = wafermap.WaferMapGrid(wafer_radius=100, cell_size=(10, 20))
+        assert len(grid) == 183
+        # cell (0, 0) is centered on the wafer center
+        assert grid[(0, 0)] == (
+            (-5.0, -10.0),
+            (5.0, -10.0),
+            (-5.0, 10.0),
+            (5.0, 10.0),
+            (0.0, 0.0),
+        )
+        assert grid.cell_to_wafer_coordinates((1, 1), (2.0, 3.0)) == (7.0, 13.0)
+        assert grid.cell_to_wafer_coordinates(None, (2.0, 3.0)) == (2.0, 3.0)
+        with self.assertRaises(ValueError):
+            grid.cell_to_wafer_coordinates((100, 100))
+
+    def test_wafermap_iteration(self):
+        grid = wafermap.WaferMapGrid(wafer_radius=50, cell_size=(10, 10))
+        cells = list(grid)
+        assert cells == list(grid.cell_map)
+        assert [next(grid) for _ in range(len(grid))] == cells
+        with self.assertRaises(StopIteration):
+            next(grid)
+
+    def test_wafermap_coverage_edge_crossing_cell(self):
+        # a wide cell crossing the top edge of the wafer with no corner inside it
+        cells = [(-30.0, 98.0, 0, 0)]
+        full = wafermap.WaferMapGrid(
+            wafer_radius=100, cell_size=(60, 10), cells=cells, edge_exclusion=0
+        )
+        inner = wafermap.WaferMapGrid(
+            wafer_radius=100,
+            cell_size=(60, 10),
+            cells=cells,
+            edge_exclusion=0,
+            coverage="inner",
+        )
+        assert (0, 0) in full
+        assert (0, 0) not in inner
+
+    def test_wafermap_add_image_position(self):
+        wm = wafermap.WaferMap(
+            wafer_radius=100,
+            cell_size=(15.29, 14.985),
+            cell_margin=(0.33, 0.735),
+            grid_offset=(0.5, 8.5),
+        )
+        wm.add_image(
+            image_source_file=os.path.join(
+                self.input_dir, "INS3300_Lot_1_Wafer_2_125416.jpg"
+            ),
+            cell=(1, -5),
+            offset=(3.0, 2.0),
+            marker_style={},
+        )
+        (overlay,) = wm._images_layer._children.values()
+        cell_x, cell_y = wm[(1, -5)][0]
+        upper_right_y, upper_right_x = overlay.bounds[1]
+        assert overlay.bounds[0] == (cell_y + 2.0, cell_x + 3.0)
+        # the image is resized to fit within the cell
+        assert upper_right_x <= wm[(1, -5)][3][0]
+        assert upper_right_y <= wm[(1, -5)][3][1]
+
+    def test_wafermap_add_vector_input_unchanged(self):
+        wm = wafermap.WaferMap(
+            wafer_radius=100, cell_size=(10, 20), conversion_factor=0.5
+        )
+        vector_points = [(0, 0), (2, 4)]
+        wm.add_vector(vector_points, cell=(0, 0), vector_length_scale=2)
+        assert vector_points == [(0, 0), (2, 4)]
+        (vector,) = wm._vectors_layer._children.values()
+        cell_x, cell_y = wm[(0, 0)][0]
+        assert vector.locations == [[cell_y, cell_x], [cell_y + 4.0, cell_x + 2.0]]
+
+    def test_wafermap_style_cell_default(self):
+        wm = wafermap.WaferMap(wafer_radius=100, cell_size=(10, 20))
+        wm.style_cell(cell=(0, 0))
+        wm.style_cell(cell=None, cell_style={"fill": True, "fillColor": "red"})
+        assert all(cell[5].options["fill"] for cell in wm.cell_map.values())
+        with self.assertRaises(ValueError):
+            wm.style_cell(cell=(100, 100), cell_style={"fill": True})
+
+    def test_wafermap_save_html_string(self):
+        wm = wafermap.WaferMap(wafer_radius=100, cell_size=(10, 20))
+        html = wm.save_html(None)
+        assert html.count('"zoomControl": true') == 1
+        assert 'zoomControl": false' not in html
+        with self.assertRaises(ValueError):
+            wm.save_html("wafermap.png")
+
+    def test_wafermap_save_png_without_html2image(self):
+        wm = wafermap.WaferMap(wafer_radius=100, cell_size=(10, 20))
+        html2image = wafermap.Html2Image
+        wafermap.Html2Image = None
+        try:
+            with self.assertRaises(ImportError):
+                wm.save_png(os.path.join(self.output_dir, "no_html2image.png"))
+        finally:
+            wafermap.Html2Image = html2image
+
+    def test_wafermap_utils(self):
+        assert utils.to255(-0.5, 0.5, 2.0) == (0, 128, 255)
+        assert utils.rgb_to_html(1.0, 0.0, 0.0) == "#FF0000"
+        assert utils.solid_color_png_url((255, 255, 255)).startswith(
+            "data:image/png;base64,"
+        )
+        ((x, y),) = utils.rotate([(0.0, 1.0)], (0.0, 0.0), 90.0)
+        assert math.isclose(x, 1.0) and math.isclose(y, 0.0, abs_tol=1e-12)
+        ((x, y),) = utils.rotate([(2.0, 1.0)], (1.0, 1.0), 180.0)
+        assert math.isclose(x, 0.0, abs_tol=1e-12) and math.isclose(y, 1.0)
+        rho, phi = utils.cart2pol(0.0, 2.0)
+        assert math.isclose(rho, 2.0) and math.isclose(phi, math.pi / 2)
+        x, y = utils.pol2cart(rho, phi)
+        assert math.isclose(x, 0.0, abs_tol=1e-12) and math.isclose(y, 2.0)
+        assert utils.bounded_rectangle([(0, 0), (4, 2)], [(0, 0), (2, 2)]) == [
+            (0, 0),
+            (2, 1),
+        ]
