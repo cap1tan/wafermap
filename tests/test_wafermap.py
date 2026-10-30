@@ -5,6 +5,8 @@ import os.path
 import random as rnd
 import unittest
 
+import folium
+
 from wafermap import utils, wafermap
 
 # pylint: disable=redefined-outer-name, missing-function-docstring, invalid-name
@@ -921,7 +923,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
                         rnd.gauss(cell_size[0] / 2, cell_size[0] / 4),
                         rnd.gauss(cell_size[1] / 2, cell_size[1] / 4),
                     )
-                ] = rnd.gauss()
+                ] = rnd.gauss(0, 1)
 
         wm.add_heatmap(data)
 
@@ -948,7 +950,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             (
                 rnd.gauss(0, wafer_radius / 4),
                 rnd.gauss(0, wafer_radius / 4),
-                rnd.gauss(),
+                rnd.gauss(0, 1),
             )
             for _ in range(N)
         ]
@@ -992,7 +994,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             ((3, 0), [(1, 1), (-20, -20)]),
         ]
         colors = ["green", "red", "blue", "black"]
-        for color, (cell, vector) in zip(colors, vectors):
+        for color, (cell, vector) in zip(colors, vectors, strict=True):
             wm.add_vector(
                 vector_points=vector,
                 cell=cell,
@@ -1247,6 +1249,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
             marker_style={},
         )
         (overlay,) = wm._images_layer._children.values()
+        assert isinstance(overlay, folium.raster_layers.ImageOverlay)
         cell_x, cell_y = wm[(1, -5)][0]
         upper_right_y, upper_right_x = overlay.bounds[1]
         assert overlay.bounds[0] == (cell_y + 2.0, cell_x + 3.0)
@@ -1262,6 +1265,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
         wm.add_vector(vector_points, cell=(0, 0), vector_length_scale=2)
         assert vector_points == [(0, 0), (2, 4)]
         (vector,) = wm._vectors_layer._children.values()
+        assert isinstance(vector, folium.PolyLine)
         cell_x, cell_y = wm[(0, 0)][0]
         assert vector.locations == [[cell_y, cell_x], [cell_y + 4.0, cell_x + 2.0]]
 
@@ -1276,6 +1280,7 @@ class FunctionalTestsWafermap(unittest.TestCase):
     def test_wafermap_save_html_string(self):
         wm = wafermap.WaferMap(wafer_radius=100, cell_size=(10, 20))
         html = wm.save_html(None)
+        assert html is not None
         assert html.count('"zoomControl": true') == 1
         assert 'zoomControl": false' not in html
         with self.assertRaises(ValueError):

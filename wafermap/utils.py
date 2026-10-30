@@ -22,7 +22,8 @@ def invert(red: float, green: float, blue: float) -> tuple[float, float, float]:
 
 def to255(red: float, green: float, blue: float) -> tuple[int, int, int]:
     """returns RGB color to 0-255 scale"""
-    return tuple(max(0, min(round(c * 255), 255)) for c in (red, green, blue))
+    r, g, b = (max(0, min(round(c * 255), 255)) for c in (red, green, blue))
+    return r, g, b
 
 
 def solid_color_png_url(rgb: tuple[int, int, int]) -> str:
@@ -36,13 +37,13 @@ def solid_color_png_url(rgb: tuple[int, int, int]) -> str:
 
 
 def euclidean_distance(
-    point: tuple[float, float], origin: tuple[float, float] = None
+    point: tuple[float, float], origin: tuple[float, float] | None = None
 ) -> float:
     """Calculate euclidean distance from the origin"""
     if origin is None:
         return math.sqrt(sum((p**2 for p in point)))
     assert len(origin) == len(point)
-    return math.sqrt(sum(((p - o) ** 2 for p, o in zip(point, origin))))
+    return math.sqrt(sum(((p - o) ** 2 for p, o in zip(point, origin, strict=True))))
 
 
 def bounded_rectangle(

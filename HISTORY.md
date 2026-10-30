@@ -64,3 +64,6 @@
   radius) cut out of the wafer edge, after SEMI M1, instead of a triangle drawn over the
   edge circle. `WaferMap.NOTCH_HEIGHT`/`NOTCH_WIDTH` are replaced by `NOTCH_DEPTH`,
   `NOTCH_ANGLE` and `NOTCH_BOTTOM_RADIUS`. New helper `utils.wafer_outline`
+* Development tooling: ruff (lint, format, import sorting) and ty (type checking) replace
+  black, isort and flake8. Type annotations for style arguments; `add_vector` accepts any
+  sequence of points

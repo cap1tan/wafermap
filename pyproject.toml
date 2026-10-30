@@ -20,10 +20,8 @@ png = [
 ]
 test = [
 	"html2image>=2.0.3",
-	"black",
-	"isort",
-	"flake8",
-	"flake8-docstrings",
+	"ruff",
+	"ty",
 	"pytest",
 	"pytest-cov",
 	"pylint",
@@ -39,10 +37,8 @@ repository = "https://github.com/cap1tan/wafermap"
 [dependency-groups]
 test=[
 	"html2image>=2.0.3",
-	"black",
-	"isort",
-	"flake8",
-	"flake8-docstrings",
+	"ruff",
+	"ty",
 	"pytest",
 	"pytest-cov",
 	"pylint",
@@ -51,6 +47,27 @@ test=[
 	"twine"
 ]
 
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+# pycodestyle, pyflakes, bugbear, mccabe complexity, import sorting
+select = ["E", "W", "F", "B", "C90", "I"]
+ignore = ["E501"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 18
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["wafermap"]
+
+[tool.ty.environment]
+python-version = "3.10"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

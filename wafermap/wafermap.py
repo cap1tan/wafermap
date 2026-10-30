@@ -3,8 +3,9 @@
 import base64
 import math
 import os
+from collections.abc import Sequence
 from io import BytesIO
-from typing import Union
+from typing import Any, Union
 
 import folium
 from folium import IFrame, plugins
@@ -219,15 +220,14 @@ class WaferMapGrid:
 
 
 class WaferMap(WaferMapGrid):
-
     IMAGE_RESOLUTION = (2560, 1440)
     # notch shape after SEMI M1: 1 mm deep, 90 degree V with a rounded bottom
     NOTCH_DEPTH = 1.0
     NOTCH_ANGLE = 90.0
     NOTCH_BOTTOM_RADIUS = 0.9
-    DEFAULT_MARKER_STYLE = {"color": "#ff0000", "fill": True}
-    DEFAULT_VECTOR_STYLE = {"color": "#009900", "weight": 1}
-    DEFAULT_POINT_STYLE = {"radius": 0.5, "fill": True}
+    DEFAULT_MARKER_STYLE: dict[str, Any] = {"color": "#ff0000", "fill": True}
+    DEFAULT_VECTOR_STYLE: dict[str, Any] = {"color": "#009900", "weight": 1}
+    DEFAULT_POINT_STYLE: dict[str, Any] = {"radius": 0.5, "fill": True}
     DEFAULT_LABEL_FONT_SIZE = 8
     DEFAULT_LABEL_HTML_STYLE = f"font-size: {DEFAULT_LABEL_FONT_SIZE}pt; color: black; text-align: center; white-space: pre; word-wrap: break-word;"
     IMAGE_SIZE_IN_POPUP = (400, 400)
@@ -430,7 +430,10 @@ class WaferMap(WaferMapGrid):
         try:
             return self.map.get_root().render()
         finally:
-            self.map.options[key] = previous_zoom_control
+            if previous_zoom_control is None:
+                self.map.options.pop(key)
+            else:
+                self.map.options[key] = previous_zoom_control
 
     def save_html(
         self, output_file: Union[str, None] = "wafermap.html"
@@ -508,7 +511,7 @@ class WaferMap(WaferMapGrid):
     def add_image(
         self,
         image_source_file: str,
-        marker_style=None,
+        marker_style: Union[None, dict[str, Any]] = None,
         cell: Union[tuple[int, int], None] = (0, 0),
         offset: tuple[float, float] = (0.0, 0.0),
     ):
@@ -563,7 +566,10 @@ class WaferMap(WaferMapGrid):
             cell_bounds = image_bounds  # no bounds
             if cell:
                 cell_upper_right = utils.swap(self[cell][3])
-                if all(o <= c for o, c in zip(image_coordinates, cell_upper_right)):
+                if all(
+                    o <= c
+                    for o, c in zip(image_coordinates, cell_upper_right, strict=True)
+                ):
                     cell_bounds = [image_coordinates, cell_upper_right]
 
             # add image as ImageOverlay
@@ -590,11 +596,11 @@ class WaferMap(WaferMapGrid):
 
     def add_vector(
         self,
-        vector_points: list[tuple[float, float]],
+        vector_points: Sequence[tuple[float, float]],
         vector_length_scale: float = 1.0,
         cell: Union[tuple[int, int], None] = (0, 0),
-        vector_style=None,
-        root_style=None,
+        vector_style: Union[None, dict[str, Any]] = None,
+        root_style: Union[None, dict[str, Any]] = None,
     ):
         """
         Add a vector to the map.
@@ -639,7 +645,7 @@ class WaferMap(WaferMapGrid):
         self,
         cell: Union[tuple[int, int], None] = (0, 0),
         offset: tuple[float, float] = (0.0, 0.0),
-        point_style=None,
+        point_style: Union[None, dict[str, Any]] = None,
         popup_text=None,
     ):
         """
