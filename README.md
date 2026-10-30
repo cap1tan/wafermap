@@ -2,7 +2,7 @@
 
 [
 ![pypi](https://img.shields.io/pypi/v/wafermap.svg)
-![pypi](https://img.shields.io/pypi/pyversions/wafermap.svg)
+![pypi](https://img.shields.io/pypi/pyversions/wafermap.svg?cacheSeconds=3600)
 ![pypi](https://img.shields.io/github/license/cap1tan/wafermap.svg)
 ](https://pypi.org/project/wafermap/)
 [
@@ -41,6 +41,8 @@ Free software: MIT license
 
 
 ## Installation
+
+Wafermap requires Python 3.11 or newer (tested on 3.11 - 3.14).
 
 To install Wafermap, run this command in your
 terminal:
