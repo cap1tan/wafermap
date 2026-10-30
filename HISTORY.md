@@ -50,6 +50,7 @@
 
 ## 0.4.0
 
+* Dropped support for Python 3.10; Python 3.11 - 3.14 are supported
 * Dependencies: `numpy` and `branca` are no longer direct dependencies. `html2image` is now
   optional; install it with `pip install wafermap[png]` to use `save_png`
 * Fixed `add_image` applying the offset twice when a cell is given
