@@ -42,7 +42,7 @@ Free software: MIT license
 
 ## Installation
 
-Wafermap requires Python 3.11 or newer (tested on 3.11 - 3.14).
+Wafermap requires Python 3.11 or newer (tested on 3.11 - 3.15).
 
 To install Wafermap, run this command in your
 terminal:
@@ -267,7 +267,7 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.md.
-3. The pull request should work for Python 3.11 - 3.14. Check
+3. The pull request should work for Python 3.11 - 3.15. Check
    https://github.com/cap1tan/wafermap/actions
    and make sure that the tests pass for all supported Python versions.
 
