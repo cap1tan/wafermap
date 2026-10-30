@@ -1,6 +1,6 @@
 [project]
 name = "wafermap"
-version = "0.3.2"
+version = "0.4.0"
 description = "A python package to plot maps of semiconductor wafers."
 authors = [
     {name = "Sotiris Thomas", email = "sothomas88@gmail.com"}
@@ -11,56 +11,40 @@ keywords = ["semiconductor", "wafer", "layout", "plot", "grid"]
 requires-python = ">=3.10,<4.0"
 dependencies = [
 	"folium>=0.19.5",
-	"branca>=0.6.0",
 	"Pillow>=12.0.0",
-	"numpy>=2.00.0",
-	"html2image>=2.0.3"
 ]
 
 [project.optional-dependencies]
+png = [
+	"html2image>=2.0.3"
+]
 test = [
+	"html2image>=2.0.3",
 	"black",
 	"isort",
 	"flake8",
 	"flake8-docstrings",
 	"pytest",
 	"pytest-cov",
-	# pre-commit = "^3.2.2"
-	# toml = "^0.10.2"
 	"pylint",
 	"tox",
 	"tox-poetry-installer",
 	"twine"
 ]
 
-# [tool.poetry.dependencies]
-# python = ">=3.10"
-# folium = { version = ">=0.19.5" }
-# branca = { version = ">=0.6.0" }
-# Pillow = { version = ">=11.1.0" }
-# numpy = { version = ">=2.00.0"}
-# html2image = { version = ">=2.0.3" }
-# black = { optional = true }
-# isort = { optional = true }
-# flake8 = { optional = true }
-# flake8-docstrings = { optional = true }
-# pytest = { optional = true }
-# pytest-cov = { optional = true }
-# pylint = { optional = true }
-# tox = { optional = true }
-# twine = { optional = true }
-
+[project.urls]
+repository = "https://github.com/cap1tan/wafermap"
+"Bug Tracker" = "https://github.com/cap1tan/wafermap/issues"
 
 [dependency-groups]
 test=[
+	"html2image>=2.0.3",
 	"black",
 	"isort",
 	"flake8",
 	"flake8-docstrings",
 	"pytest",
 	"pytest-cov",
-	# pre-commit = "^3.2.2"
-	# toml = "^0.10.2"
 	"pylint",
 	"tox",
 	"tox-poetry-installer",

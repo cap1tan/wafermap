@@ -1,8 +1,10 @@
 """Utility functions"""
 
+import base64
 import math
+from io import BytesIO
 
-import numpy
+from PIL import Image
 
 # Color functions
 
@@ -20,10 +22,14 @@ def invert(red: float, green: float, blue: float) -> tuple[float, float, float]:
 
 def to255(red: float, green: float, blue: float) -> tuple[int, int, int]:
     """returns RGB color to 0-255 scale"""
-    r = min(round(red * 255), 255)
-    g = min(round(green * 255), 255)
-    b = min(round(blue * 255), 255)
-    return r, g, b
+    return tuple(max(0, min(round(c * 255), 255)) for c in (red, green, blue))
+
+
+def solid_color_png_url(rgb: tuple[int, int, int]) -> str:
+    """Return a data URL of a 2x2 PNG filled with the given 0-255 RGB color"""
+    buffered = BytesIO()
+    Image.new("RGB", (2, 2), tuple(rgb)).save(buffered, "PNG")
+    return "data:image/png;base64," + base64.b64encode(buffered.getvalue()).decode()
 
 
 # Utility functions
@@ -83,30 +89,30 @@ def bounded_rectangle(
 def rotate(
     points: list[tuple[float, float]], anchor: tuple[float, float], angle: float = 90.0
 ) -> list[tuple[float, float]]:
-    """Rotates points (nx2) about anchor (x, y) by angle in degrees"""
-    points = numpy.array(points)
-    anchor = numpy.array(anchor)
-    angle = math.radians(-angle)
-    return (
-        numpy.dot(
-            points - anchor,
-            [[math.cos(angle), math.sin(angle)], [-math.sin(angle), math.cos(angle)]],
+    """Rotates points (nx2) about anchor (x, y) by angle in degrees, clockwise"""
+    cos_a = math.cos(math.radians(angle))
+    sin_a = math.sin(math.radians(angle))
+    a_x, a_y = anchor
+    return [
+        (
+            a_x + (x - a_x) * cos_a + (y - a_y) * sin_a,
+            a_y - (x - a_x) * sin_a + (y - a_y) * cos_a,
         )
-        + anchor
-    )
+        for x, y in points
+    ]
 
 
 def cart2pol(x: float, y: float) -> tuple[float, float]:
     """Convert cartesian coordinates x, y into polar rho, phi"""
-    rho = numpy.sqrt(x**2 + y**2)
-    phi = numpy.arctan2(y, x)
+    rho = math.hypot(x, y)
+    phi = math.atan2(y, x)
     return rho, phi
 
 
 def pol2cart(rho: float, phi: float) -> tuple[float, float]:
     """Convert polar coordinates rho, phi into cartesian x, y"""
-    x = rho * numpy.cos(phi)
-    y = rho * numpy.sin(phi)
+    x = rho * math.cos(phi)
+    y = rho * math.sin(phi)
     return x, y
 
 
