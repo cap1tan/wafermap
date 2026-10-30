@@ -27,7 +27,8 @@ Free software: MIT license
 * Individual labels and colors for each die.
 * Toggle layers on/off individually.
 * Export zoom-able maps to HTML.
-* Export PNG images (needs Chromium)
+* Heatmaps of measurement data.
+* Export PNG images (needs the `png` extra and Chrome or Edge)
 
 
 ## Examples
@@ -50,6 +51,12 @@ $ pip install wafermap
 
 This is the preferred method to install Wafermap, as it will always install the most recent stable release.
 
+To also export PNG images, install the `png` extra (Chrome or Edge must be installed too):
+
+``` console
+$ pip install wafermap[png]
+```
+
 If you don't have [pip][] installed, this [Python installation guide][]
 can guide you through the process.
 
@@ -67,7 +74,7 @@ $ git clone git://github.com/cap1tan/wafermap
 
   [pip]: https://pip.pypa.io
   [Python installation guide]: http://docs.python-guide.org/en/latest/starting/installation/
-  [Github repo]: https://github.com/%7B%7B%20cookiecutter.github_username%20%7D%7D/%7B%7B%20cookiecutter.project_slug%20%7D%7D
+  [Github repo]: https://github.com/cap1tan/wafermap
 
 
 ## Usage
@@ -126,21 +133,39 @@ for cell, cell_points_ in cell_points:
         wm.add_point(cell=cell, offset=cell_point)
 ```
 
+Labels, cell colors and heatmaps work the same way:
+
+```python
+wm.add_label(cell=(2, 0), offset=(5, 10), label_text="PASS")
+wm.style_cell(cell=(2, 0), cell_style={"fill": True, "fillColor": "green", "fillOpacity": 0.5})
+
+# list of (wafer_x, wafer_y, value), or a dict {(cell_x, cell_y, offset_x, offset_y): value}
+wm.add_heatmap([(rnd.gauss(0, 25), rnd.gauss(0, 25), 1.0) for _ in range(500)])
+```
+
+Instead of a regular grid, the cells can also be given explicitly, as
+`(wafer_x, wafer_y, cell_x, cell_y)` with `(wafer_x, wafer_y)` the lower left corner of each cell:
+
+```python
+wm = wafermap.WaferMap(wafer_radius=150, cell_size=(5, 10),
+                       cells=[(-5, -10, 0, 0), (0, -10, 1, 0), (-5, 0, 0, 1)])
+```
+
 Finally, nothing would matter if we couldn't see the result:
 ```python
 # save to html
 wm.save_html(f"wafermap.html")
 
-# save to png (Chromium must be installed)
+# save to png (needs `pip install wafermap[png]` and Chrome or Edge)
 wm.save_png(f"wafermap.png")
 ```
 
 
 ## Dependencies
 
-- __Folium__ & __branca__ -> to make dynamic, zoom-able and pan-able HTML based maps
-- __Pillow__ -> to support embedded images and format the optional image output 
-- __Chromium__ -> exporting to .png images
+- __Folium__ -> to make dynamic, zoom-able and pan-able HTML based maps
+- __Pillow__ -> to support embedded images and format the optional image output
+- __html2image__ (optional, `png` extra) & __Chrome__ or __Edge__ -> exporting to .png images
 
 
 ## Contributing
@@ -204,7 +229,7 @@ Ready to contribute? Here's how to set up `wafermap` for local development.
 4. Install dependencies and start your virtualenv:
 
 ```
-    $ poetry install -E test -E doc -E dev
+    $ poetry install -E test
 ```
 
 5. Create a branch for local development:
@@ -240,7 +265,7 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.md.
-3. The pull request should work for Python 3.6, 3.7, 3.8, 3.9 and for PyPy. Check
+3. The pull request should work for Python 3.10 - 3.14. Check
    https://github.com/cap1tan/wafermap/actions
    and make sure that the tests pass for all supported Python versions.
 
