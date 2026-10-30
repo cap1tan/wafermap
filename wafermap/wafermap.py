@@ -221,8 +221,10 @@ class WaferMapGrid:
 class WaferMap(WaferMapGrid):
 
     IMAGE_RESOLUTION = (2560, 1440)
-    NOTCH_HEIGHT = 1
-    NOTCH_WIDTH = 2.8284
+    # notch shape after SEMI M1: 1 mm deep, 90 degree V with a rounded bottom
+    NOTCH_DEPTH = 1.0
+    NOTCH_ANGLE = 90.0
+    NOTCH_BOTTOM_RADIUS = 0.9
     DEFAULT_MARKER_STYLE = {"color": "#ff0000", "fill": True}
     DEFAULT_VECTOR_STYLE = {"color": "#009900", "weight": 1}
     DEFAULT_POINT_STYLE = {"radius": 0.5, "fill": True}
@@ -333,30 +335,21 @@ class WaferMap(WaferMapGrid):
         self._vectors_layer = folium.map.FeatureGroup(name="vectors")
         self._data_layer = folium.map.FeatureGroup(name="data")
 
-        # Add wafer edge
-        folium.Circle(
-            radius=self.wafer_radius,
-            location=(0.0, 0.0),
-            color=self.wafer_edge_color,
-            fill=False,
-        ).add_to(folium_map)
-
-        # Add notch
-        notch_height = WaferMap.NOTCH_HEIGHT * self.conversion_factor
-        notch_width = WaferMap.NOTCH_WIDTH * self.conversion_factor
+        # Add wafer edge, with the notch cut out of it
         folium.Polygon(
-            locations=utils.rotate(
-                [
-                    (0.0, self.wafer_radius - notch_height),
-                    (notch_width, self.wafer_radius),
-                    (-notch_width, self.wafer_radius),
-                    (0.0, self.wafer_radius - notch_height),
-                ],
-                (0, 0),
-                angle=self.notch_orientation,
+            locations=utils.swap(
+                utils.wafer_outline(
+                    self.wafer_radius,
+                    notch_orientation=self.notch_orientation,
+                    notch_depth=WaferMap.NOTCH_DEPTH * self.conversion_factor,
+                    notch_angle=WaferMap.NOTCH_ANGLE,
+                    notch_bottom_radius=WaferMap.NOTCH_BOTTOM_RADIUS
+                    * self.conversion_factor,
+                )
             ),
             color=self.wafer_edge_color,
             fill=False,
+            smooth_factor=0,  # no simplification, keeps the edge round when zoomed out
         ).add_to(folium_map)
 
         # Add wafer edge exclusion

@@ -60,3 +60,7 @@
 * `add_image` raises `ValueError` for unreadable images and supports non-RGB images in popups
 * Exports no longer change the map's zoom control setting
 * Faster cell iteration, smaller HTML output for vectors
+* Realistic notch: a 1 mm deep, 90 degree V-notch with a rounded bottom (0.9 mm
+  radius) cut out of the wafer edge, after SEMI M1, instead of a triangle drawn over the
+  edge circle. `WaferMap.NOTCH_HEIGHT`/`NOTCH_WIDTH` are replaced by `NOTCH_DEPTH`,
+  `NOTCH_ANGLE` and `NOTCH_BOTTOM_RADIUS`. New helper `utils.wafer_outline`

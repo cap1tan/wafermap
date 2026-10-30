@@ -1291,6 +1291,34 @@ class FunctionalTestsWafermap(unittest.TestCase):
         finally:
             wafermap.Html2Image = html2image
 
+    def test_wafermap_notch_shape(self):
+        radius = 100.0
+        for orientation in (0.0, 67.0, 270.0):
+            outline = utils.wafer_outline(radius, notch_orientation=orientation)
+            assert outline[0] == outline[-1]
+            distances = [math.hypot(x, y) for x, y in outline]
+            assert max(distances) <= radius + 1e-9
+            # the notch bottom is 1 mm deep, in the notch direction
+            deepest = min(range(len(outline)), key=distances.__getitem__)
+            assert math.isclose(distances[deepest], radius - 1.0)
+            x, y = outline[deepest]
+            angle_error = (math.degrees(math.atan2(y, x)) - orientation + 180) % 360
+            assert math.isclose(angle_error, 180.0)
+
+        # notch sides at 45 degrees from the notch axis, i.e. a 90 degree notch
+        outline = utils.wafer_outline(radius, notch_orientation=90.0)
+        first_notch_point = next(
+            i
+            for i, point in enumerate(outline)
+            if not math.isclose(math.hypot(*point), radius)
+        )
+        (edge_x, edge_y), (tangent_x, tangent_y) = outline[
+            first_notch_point - 1 : first_notch_point + 1
+        ]
+        assert math.isclose(
+            math.degrees(math.atan2(edge_x - tangent_x, edge_y - tangent_y)), 45.0
+        )
+
     def test_wafermap_utils(self):
         assert utils.to255(-0.5, 0.5, 2.0) == (0, 128, 255)
         assert utils.rgb_to_html(1.0, 0.0, 0.0) == "#FF0000"
